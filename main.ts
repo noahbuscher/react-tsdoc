@@ -54,21 +54,56 @@ const findJSXParentComponent = (node: ts.Node) => {
 }
 
 /**
+ * Resolve a type ref by name to a node
+ *
+ * @param refName - The type ref to resolve
+ * @param node - The current AST node
+ */
+const resolveTypeReference = (refName: string, node: ts.Node) => {
+	if (ts.isInterfaceDeclaration(node) && node.name.escapedText === refName) {
+		return node;
+	}
+
+	for (const childNode of node.getChildren()) {
+		return resolveTypeReference(refName, childNode);
+	}
+}
+
+/**
  * Get all the TS params for a given node
  *
  * @param node - The current AST node
  */
 const getParams = (node: ts.Node) => {
-	if (ts.isTypeLiteralNode(node)) {
-
+	// TODO: check to see if symbol
+	if (ts.isTypeLiteralNode(node) || ts.isTypeReferenceNode(node)) {
 		const params = [];
+		/*
+		 * Reference node, grab params and get outta here. Starting at the source
+		 * as it's assumed the reference is defined at the top level... might
+		 * save some time
+		 */
+		if (ts.isTypeReferenceNode(node)) {
+			const resolvedRefNode: ts.Node = resolveTypeReference(node.getText(), source);
 
-		node.forEachChild((param) => {
-			// @ts-ignore
-			params.push(param.name.escapedText);
-		});
+			resolvedRefNode.forEachChild((childNode) => {
 
-		return params;
+				// It seems the Identifier is a child of the ref node - ignore
+				if (ts.isPropertySignature(childNode)) {
+					// @ts-ignore
+					params.push(childNode.name.escapedText)
+				}
+			});
+
+			return params;
+		} else {
+			node.forEachChild((param) => {
+				// @ts-ignore
+				params.push(param.name.escapedText);
+			});
+
+			return params;
+		}
 	}
 
 	for (const childNode of node.getChildren()) {
@@ -223,6 +258,8 @@ const generateDocs = (node: ts.Node) => {
 		// Grab TS-inferred properties for each param
 		for (const param in doc.props) {
 			const paramDefaultValue = getParamDefault(param, component);
+
+			// TOOD: Modify this to check type ref if one exists
 			const paramIsRequired = isParamRequired(param, component);
 
 			doc.props[param] = {
