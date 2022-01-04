@@ -1,12 +1,27 @@
 {
   "name": "react-tsdocgen",
   "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
-  "directories": {
-    "doc": "docs"
+  "description": "CLI to extract information from React Typescript component files with TSDoc for documentation generation purposes",
+  "keywords": [
+    "documentation-generation",
+    "react",
+    "tsdoc",
+    "typescript"
+  ],
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "main": "lib/main.js",
+  "bin": {
+    "react-tsdocgen": "./bin/react-tsdocgen.js"
   },
   "scripts": {
+    "build": "rimraf lib/ && npm run build:ts",
+    "build:ts": "tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,6 +29,11 @@
   "dependencies": {
     "@microsoft/tsdoc": "^0.13.2",
     "ts-morph": "^13.0.2",
+    "yargs": "^17.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.7",
+    "rimraf": "^3.0.2",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
   }

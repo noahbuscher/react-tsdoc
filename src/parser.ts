@@ -9,16 +9,12 @@ import {
 	PropertySignature,
 	SourceFile,
 	BindingElement,
-	ts
+	TypeLiteralNode,
+	TypeReferenceNode
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
 
 const project = new Project();
-
-// Hardcoded for now
-project.addSourceFilesAtPaths('tests/**/*{.ts,.tsx}');
-
-project.resolveSourceFileDependencies();
 
 const sourceFiles = project.getSourceFiles()
 
@@ -38,16 +34,18 @@ const PARAM_DEFAULT = {
  * @param node - The current AST node
  */
 const getParams = (node: ArrowFunction|FunctionDeclaration) => {
-	const params = [];
+	const params: [] = [];
 
 	// Placeholder for the (eventually) resolved TypeLiteral
-	let nodeTypeParams: Node;
+	let nodeTypeParams: Node|TypeLiteralNode|TypeReferenceNode|undefined;
 
 	// Grab the params node
 	const nodeParams = node.getParameters()[0];
 
 	// Grab the properties from the params node
 	const nodeProperties = nodeParams.getFirstChildByKind(SyntaxKind.ObjectBindingPattern);
+
+	if (!nodeProperties) throw Error;
 
 	// Grab the TS params from the params node
 	nodeTypeParams = nodeParams.getLastChildByKind(SyntaxKind.TypeLiteral);
@@ -61,29 +59,37 @@ const getParams = (node: ArrowFunction|FunctionDeclaration) => {
 		// The reference identifier for the type (defined elsewhere)
 		const typeRef = nodeParams.getFirstChildByKind(SyntaxKind.TypeReference);
 
+		// No type ref either... get outta here
+		if (!typeRef) throw Error;
+
 		// Grab ref's identifier
 		const typeRefIdentifier = typeRef.getFirstChildByKind(SyntaxKind.Identifier);
+
+		if (!typeRefIdentifier) throw Error;
 
 		// First index is the root definition node
 		nodeTypeParams = typeRefIdentifier.getDefinitionNodes()[0];
 	}
 
 	// For each type param (source of truth)
-	nodeTypeParams.forEachChild((childNode: PropertySignature) => {
+	nodeTypeParams.forEachChild((childNode: Node|PropertySignature) => {
 		const paramIdentifier = childNode.getFirstChildByKind(SyntaxKind.Identifier);
 		if (!paramIdentifier) return;
 
-		const paramName = paramIdentifier.getText();
+		const paramName: string = paramIdentifier.getText() || '';
 
 		// Seek out complimentary initializer, if any
-		const initializer = nodeProperties.forEachChild((child: BindingElement) => {
-			if (paramName === child.getFirstChildByKind(SyntaxKind.Identifier).getText()) {
+		const initializer = nodeProperties.forEachChild((child: any) => {
+			if (child.getKind() === SyntaxKind.BindingElement
+				&& paramName === child.getFirstChildByKind(SyntaxKind.Identifier)?.getText()
+			) {
 				return child.getInitializer()?.getText();
 			}
 		})
 
 		// Pass as much as we know about params to avoid successive searches
 		params[paramName] = {
+			// @ts-ignore
 			required: !childNode.getQuestionTokenNode(),
 			initializer
 		}
@@ -137,9 +143,12 @@ const parseTSDoc = (comment: any) => {
  *
  * @param node - The current AST node
  */
+// @ts-ignore
 const renderParamBlock = (node: any) => {
 	if (node instanceof tsdoc.DocPlainText) {
 		return node.text;
+	} else {
+
 	}
 
 	for (const childNode of node.getChildNodes()) {
@@ -164,7 +173,7 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
  *
  * @param node - The current AST node
  */
-const generateDocs = (sourceFiles: SourceFile[]) => {
+const generateDocs = (sourceFiles: SourceFile[], output: string) => {
 	const sourceFileCount = project.getSourceFiles().length;
 	project.getSourceFiles().forEach((sourceFile, sourceFileIndex) => {
 		const sourceFilePath = path.relative(process.cwd(), sourceFile.getFilePath().toString());
@@ -176,6 +185,8 @@ const generateDocs = (sourceFiles: SourceFile[]) => {
 
 		declarations.forEach((node) => {
 			const name = node.getName()
+			if (!name) throw Error;
+
 			const isComponent = name[0] === name[0].toUpperCase()
 
 			if (isComponent) {
@@ -207,9 +218,10 @@ const generateDocs = (sourceFiles: SourceFile[]) => {
 
 				// Add descriptions for documented params
 				const commentRanges = findCommentRanges(
+					// @ts-ignore
 					component.getKind() === SyntaxKind.FunctionDeclaration
 						? component
-						: component.getFirstAncestorByKind(SyntaxKind.VariableStatement)
+						: component?.getFirstAncestorByKind(SyntaxKind.VariableStatement)
 				);
 
 				commentRanges.map((range) => {
@@ -237,20 +249,32 @@ const generateDocs = (sourceFiles: SourceFile[]) => {
 		console.log(`Finished processing file ${sourceFileIndex + 1} of ${sourceFileCount}`);
 	});
 
-	fs.writeFile('output.json', JSON.stringify(doc), 'utf8', () => {
+	fs.writeFile(output, JSON.stringify(doc), 'utf8', () => {
 		console.log('Finished documentation generation!');
 	});
 }
 
-const program = project.getProgram();
+const parser = (directory: string, output: string) => {
+	const program = project.getProgram();
 
-// @ts-ignore
-let diagnostics = program.getSyntacticDiagnostics();
+	if (fs.lstatSync(directory).isDirectory()) {
+		project.addSourceFilesAtPaths(`${directory}/**/*{.ts,.tsx}`);
+	} else if (fs.lstatSync(directory).isFile()) {
+		project.addSourceFileAtPath(directory);
+	}
 
-if (diagnostics.length) {
-	diagnostics.forEach((diagnostic) => {
-		console.error(`${diagnostic.getMessageText()} on line ${diagnostic.getLineNumber()} in ${diagnostic.getSourceFile().getFilePath()}`);
-	});
-} else {
-	generateDocs(sourceFiles)
+	project.resolveSourceFileDependencies();
+
+	// @ts-ignore
+	let diagnostics = program.getSyntacticDiagnostics();
+
+	if (diagnostics.length) {
+		diagnostics.forEach((diagnostic) => {
+			console.error(`${diagnostic.getMessageText()} on line ${diagnostic.getLineNumber()} in ${diagnostic.getSourceFile().getFilePath()}`);
+		});
+	} else {
+		generateDocs(sourceFiles, output)
+	}
 }
+
+export default parser;

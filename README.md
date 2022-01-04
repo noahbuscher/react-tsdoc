@@ -5,6 +5,20 @@ that strictly adheres to the TSDoc standard; in fact, it's based on the `@micros
 parser. Ergo, it may not play super nice with JSDoc comments. If you get burned, don't
 say I didn't warn you.
 
+### Install
+
+To install `react-tsdocgen` just run:
+
+```
+npm install react-tsdocgen
+```
+
+Example parser command:
+
+```
+react-tsdocgen ./src/components --output ./docs/output.json
+```
+
 ### Another Docgen?
 
 While it might not seem like there's room for yet another docgen, there
