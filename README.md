@@ -1,6 +1,7 @@
 # react-tsdocgen
 
-React-TSDocgen (succinct name, I know) is an experimental React Typescript docgen
+react-tsdocgen (succinct name, I know) is an experimental CLI to extract information
+from React Typescript component files with TSDoc for documentation generation purposes
 that strictly adheres to the TSDoc standard; in fact, it's based on the `@microsoft/tsdoc`
 parser. Ergo, it may not play super nice with JSDoc comments. If you get burned, don't
 say I didn't warn you.
@@ -78,7 +79,61 @@ Other things the docgen picks up that are inferred from TS are:
 
 - Required status of params
 - Default param values
-- Param types (duh)
+- Param types (soon)
+
+### Output
+
+Here's an example component with the associated parser output...
+
+#### Input
+
+```tsx
+/**
+ * Button
+ *
+ * @param disabled - Sets if field is disabled
+ * @param label - Sets the button text
+ */
+const Button = ({
+	disabled = false,
+	label
+}: {
+	disabled?: boolean
+	label: string
+}) => {
+	return (
+		<button disabled={disabled}>
+			{label}
+		</button>
+	)
+};
+```
+
+```json
+{
+  "description": "Button",
+  "props": {
+    "disabled": {
+      "description": "Sets if field is disabled",
+      "required": false,
+      "tsType": {
+        "name": "boolean"
+      },
+      "defaultValue": {
+        "value": "false",
+        "computed": false
+      }
+    },
+    "label": {
+      "description": "Sets the button text",
+      "required": true,
+      "tsType": {
+        "name": "string"
+      }
+    }
+  }
+}
+```
 
 ### Development
 
