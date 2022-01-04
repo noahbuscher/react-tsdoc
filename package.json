@@ -1,6 +1,7 @@
 {
   "name": "react-tsdocgen",
   "version": "1.0.0",
+  "author": "Noah Buscher",
   "description": "CLI to extract information from React Typescript component files with TSDoc for documentation generation purposes",
   "keywords": [
     "documentation-generation",

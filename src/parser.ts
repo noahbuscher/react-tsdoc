@@ -14,6 +14,7 @@ import {
 	getParamComments,
 	renderParamBlock
 } from './utils/tsDocHelper';
+import { getType } from './utils/tsTypeHelper';
 
 // Init new ts-morph project
 const project = new Project();

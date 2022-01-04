@@ -1,3 +1,8 @@
+<div style="text-align: center;">
+  <img src="./logo.png" width="200px"/>
+</div>
+
+
 # react-tsdocgen
 
 react-tsdocgen (succinct name, I know) is an experimental CLI to extract information
