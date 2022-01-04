@@ -3,9 +3,11 @@ import {
 	SyntaxKind,
 	Node,
 	ArrowFunction,
+	FunctionDeclaration,
 	PropertySignature,
 	SourceFile,
-	BindingElement
+	BindingElement,
+	ts
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
 
@@ -36,7 +38,7 @@ const PARAM_DEFAULT = {
  *
  * @param node - The current AST node
  */
-const getParams = (node: ArrowFunction) => {
+const getParams = (node: ArrowFunction|FunctionDeclaration) => {
 	const params = [];
 
 	// Placeholder for the (eventually) resolved TypeLiteral
@@ -165,61 +167,80 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
  */
 const generateDocs = (sourceFiles: SourceFile[]) => {
 	project.getSourceFiles().forEach((sourceFile) => {
-		const variableDecs = sourceFile.getVariableDeclarations();
+		const declarations = [
+			...sourceFile.getVariableDeclarations(),
+			...sourceFile.getFunctions()
+		];
 
-		for (const dec in variableDecs) {
-			const node = variableDecs[dec];
-
+		declarations.forEach((node) => {
 			const name = node.getName()
 			const isComponent = name[0] === name[0].toUpperCase()
 
 			if (isComponent) {
-				const component = node.getFirstChildByKind(SyntaxKind.ArrowFunction)
+				// @ts-ignore
+				const component = node.getKind() === SyntaxKind.FunctionDeclaration
+					? node
+					: node.getFirstChildByKind(SyntaxKind.ArrowFunction);
 
-					const params = getParams(component);
+				// @ts-ignore
+				const params = getParams(component);
 
-					for (const param in params) {
-						const { required, initializer } = params[param];
+				for (const param in params) {
+					const { required, initializer } = params[param];
 
-						doc.props[param] = {
-							...PARAM_DEFAULT,
-							required,
-							defaultValue: initializer && {
-								value: initializer,
-								computed: false
-							}
-						};
+					doc.props[param] = {
+						...PARAM_DEFAULT,
+						required,
+						defaultValue: initializer && {
+							value: initializer,
+							computed: false
+						}
 					};
+				};
 
-					// Add descriptions for documented params
-					const commentRanges = findCommentRanges(component.getFirstAncestorByKind(SyntaxKind.VariableStatement));
+				// Add descriptions for documented params
+				const commentRanges = findCommentRanges(
+					component.getKind() === SyntaxKind.FunctionDeclaration
+						? component
+						: component.getFirstAncestorByKind(SyntaxKind.VariableStatement)
+				);
 
-					commentRanges.map((range) => {
-						const comment: tsdoc.DocComment = parseTSDoc(range);
+				commentRanges.map((range) => {
+					const comment: tsdoc.DocComment = parseTSDoc(range);
 
-						doc.description = renderCommentSummary(comment);
+					doc.description = renderCommentSummary(comment);
 
-						comment.params.blocks.forEach((paramBlock: tsdoc.DocParamBlock) => {
+					comment.params.blocks.forEach((paramBlock: tsdoc.DocParamBlock) => {
 
-							// Don't document params that aren't omitted from TS
-							if (doc.props[paramBlock.parameterName]) {
-								doc.props[paramBlock.parameterName] = {
-									...doc.props[paramBlock.parameterName],
-									description: renderParamBlock(paramBlock.content)
-								}
+						// Don't document params that aren't omitted from TS
+						if (doc.props[paramBlock.parameterName]) {
+							doc.props[paramBlock.parameterName] = {
+								...doc.props[paramBlock.parameterName],
+								description: renderParamBlock(paramBlock.content)
 							}
-						});
+						}
 					});
+				});
 
-					console.log(JSON.stringify(doc, null, 4))
+				console.log(JSON.stringify(doc, null, 4))
 			} else {
 
 				// Not a React component
 				return;
 			}
-		}
+		});
 	});
 }
 
-// TODO: Validate TS first? Trust it's clean? Idfk.
-generateDocs(sourceFiles)
+const program = project.getProgram();
+
+// @ts-ignore
+let diagnostics = program.getSyntacticDiagnostics();
+
+if (diagnostics.length) {
+	diagnostics.forEach((diagnostic) => {
+		console.error(`${diagnostic.getMessageText()} on line ${diagnostic.getLineNumber()} in ${diagnostic.getSourceFile().getFilePath()}`);
+	});
+} else {
+	generateDocs(sourceFiles)
+}
