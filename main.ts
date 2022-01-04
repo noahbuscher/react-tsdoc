@@ -1,3 +1,5 @@
+import path from 'path';
+import fs from 'fs';
 import {
 	Project,
 	SyntaxKind,
@@ -20,10 +22,7 @@ project.resolveSourceFileDependencies();
 
 const sourceFiles = project.getSourceFiles()
 
-const doc: any = {
-	description: '',
-	props: {}
-};
+const doc: any = {}
 
 const PARAM_DEFAULT = {
 	description: '',
@@ -166,7 +165,10 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
  * @param node - The current AST node
  */
 const generateDocs = (sourceFiles: SourceFile[]) => {
-	project.getSourceFiles().forEach((sourceFile) => {
+	const sourceFileCount = project.getSourceFiles().length;
+	project.getSourceFiles().forEach((sourceFile, sourceFileIndex) => {
+		const sourceFilePath = path.relative(process.cwd(), sourceFile.getFilePath().toString());
+
 		const declarations = [
 			...sourceFile.getVariableDeclarations(),
 			...sourceFile.getFunctions()
@@ -185,10 +187,15 @@ const generateDocs = (sourceFiles: SourceFile[]) => {
 				// @ts-ignore
 				const params = getParams(component);
 
+				doc[sourceFilePath] = {
+					description: '',
+					props: {}
+				};
+
 				for (const param in params) {
 					const { required, initializer } = params[param];
 
-					doc.props[param] = {
+					doc[sourceFilePath].props[param] = {
 						...PARAM_DEFAULT,
 						required,
 						defaultValue: initializer && {
@@ -208,27 +215,30 @@ const generateDocs = (sourceFiles: SourceFile[]) => {
 				commentRanges.map((range) => {
 					const comment: tsdoc.DocComment = parseTSDoc(range);
 
-					doc.description = renderCommentSummary(comment);
+					doc[sourceFilePath].description = renderCommentSummary(comment);
 
 					comment.params.blocks.forEach((paramBlock: tsdoc.DocParamBlock) => {
 
 						// Don't document params that aren't omitted from TS
-						if (doc.props[paramBlock.parameterName]) {
-							doc.props[paramBlock.parameterName] = {
-								...doc.props[paramBlock.parameterName],
+						if (doc[sourceFilePath].props[paramBlock.parameterName]) {
+							doc[sourceFilePath].props[paramBlock.parameterName] = {
+								...doc[sourceFilePath].props[paramBlock.parameterName],
 								description: renderParamBlock(paramBlock.content)
 							}
 						}
 					});
 				});
-
-				console.log(JSON.stringify(doc, null, 4))
 			} else {
-
 				// Not a React component
 				return;
 			}
 		});
+
+		console.log(`Finished processing file ${sourceFileIndex + 1} of ${sourceFileCount}`);
+	});
+
+	fs.writeFile('output.json', JSON.stringify(doc), 'utf8', () => {
+		console.log('Finished documentation generation!');
 	});
 }
 
