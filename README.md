@@ -109,6 +109,8 @@ const Button = ({
 };
 ```
 
+#### Output
+
 ```json
 {
   "description": "Button",
@@ -137,4 +139,17 @@ const Button = ({
 
 ### Development
 
-Coming soon...
+I've heavily commented a lot of the functions as this has been an AST learning
+experience for me, and I hope others find it easy to understand and contribute.
+
+To build, just run
+```
+npm install && npm run build
+```
+
+This will build the `./lib` folder and then you can execute the CLI from the `/bin`
+directory, like this:
+
+```
+bin/react-tsdocgen.js ./src/components ./output.json && cat ./output.json
+```
