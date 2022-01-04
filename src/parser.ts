@@ -8,25 +8,35 @@ import {
 	FunctionDeclaration,
 	PropertySignature,
 	SourceFile,
-	BindingElement,
 	TypeLiteralNode,
-	TypeReferenceNode
+	TypeReferenceNode,
+	VariableDeclaration,
+	ExportDeclaration,
+	InterfaceDeclaration
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
 
 const project = new Project();
 
-const sourceFiles = project.getSourceFiles()
+const doc: any = {};
 
-const doc: any = {}
+/**
+ * Checks if a given declaration is a React component
+ *
+ * @param node - The node to check
+ */
+const isReactComponent = (node: ExportDeclaration) => {
+	if (node.getKind() === SyntaxKind.VariableDeclaration
+	|| node.getKind() == SyntaxKind.FunctionDeclaration) {
+		// @ts-ignore
+		const name = node.getName();
+		if (!name) throw Error;
 
-const PARAM_DEFAULT = {
-	description: '',
-	required: false,
-	tsType: {
-		name: 'unknown'
+		return name[0] === name[0].toUpperCase();
 	}
-};
+
+	return false;
+}
 
 /**
  * Get all the TS params for a given node
@@ -169,92 +179,119 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
 }
 
 /**
+ * Generate docs for a singular file
+ *
+ * @param sourceFile - The sourceFile node to document
+ */
+const generateDocsForFile = (sourceFile: SourceFile) => {
+	let doc: any;
+
+	const exportedDeclarations = sourceFile.getExportedDeclarations();
+
+	// @ts-ignore
+	exportedDeclarations.forEach((declarations: ExportDeclaration[]) => {
+		declarations.forEach((node: ExportDeclaration) => {
+			if (!isReactComponent(node)) return;
+
+			// We only allow one exported component definition per file
+			if (doc) {
+				throw Error(
+					`Multiple exported component definitions found in ${sourceFile.getFilePath()}`
+				);
+			}
+
+			const component = node.getKind() === SyntaxKind.FunctionDeclaration
+				? node
+				: node.getFirstChildByKind(SyntaxKind.ArrowFunction);
+
+			// @ts-ignore
+			const params = getParams(component);
+
+			doc = {
+				description: '',
+				props: {}
+			};
+
+			for (const param in params) {
+				const { required, initializer } = params[param];
+
+				doc.props[param] = {
+					required,
+					defaultValue: initializer && {
+						value: initializer,
+						computed: false
+					},
+					tsType: {
+						name: 'unknown'
+					}
+				};
+			};
+
+			// Add descriptions for documented params
+			const commentRanges = findCommentRanges(
+				// @ts-ignore
+				component.getKind() === SyntaxKind.FunctionDeclaration
+					? component
+					// Comment ranges are not on the ArrowFunction
+					: component?.getFirstAncestorByKind(SyntaxKind.VariableStatement)
+			);
+
+			commentRanges.map((range) => {
+				const comment: tsdoc.DocComment = parseTSDoc(range);
+
+				doc.description = renderCommentSummary(comment);
+
+				comment.params.blocks.forEach((paramBlock: tsdoc.DocParamBlock) => {
+
+					// Don't document params that aren't omitted from TS
+					if (doc.props[paramBlock.parameterName]) {
+						doc.props[paramBlock.parameterName] = {
+							...doc.props[paramBlock.parameterName],
+							description: renderParamBlock(paramBlock.content)
+						}
+					}
+				});
+			});
+		});
+	})
+
+	return doc || false;
+}
+
+/**
  * Walk the AST and find React components
  *
  * @param node - The current AST node
  */
-const generateDocs = (sourceFiles: SourceFile[], output: string) => {
+const generateDocs = (sourceFiles: SourceFile[], output: string, isCLI: boolean = false) => {
 	const sourceFileCount = project.getSourceFiles().length;
+	const docs = {};
+
 	project.getSourceFiles().forEach((sourceFile, sourceFileIndex) => {
+		if (isCLI) {
+			console.log(`Processing file ${sourceFileIndex + 1} of ${sourceFileCount}`);
+		}
+
 		const sourceFilePath = path.relative(process.cwd(), sourceFile.getFilePath().toString());
 
-		const declarations = [
-			...sourceFile.getVariableDeclarations(),
-			...sourceFile.getFunctions()
-		];
+		const fileDocs = generateDocsForFile(sourceFile);
 
-		declarations.forEach((node) => {
-			const name = node.getName()
-			if (!name) throw Error;
-
-			const isComponent = name[0] === name[0].toUpperCase()
-
-			if (isComponent) {
-				// @ts-ignore
-				const component = node.getKind() === SyntaxKind.FunctionDeclaration
-					? node
-					: node.getFirstChildByKind(SyntaxKind.ArrowFunction);
-
-				// @ts-ignore
-				const params = getParams(component);
-
-				doc[sourceFilePath] = {
-					description: '',
-					props: {}
-				};
-
-				for (const param in params) {
-					const { required, initializer } = params[param];
-
-					doc[sourceFilePath].props[param] = {
-						...PARAM_DEFAULT,
-						required,
-						defaultValue: initializer && {
-							value: initializer,
-							computed: false
-						}
-					};
-				};
-
-				// Add descriptions for documented params
-				const commentRanges = findCommentRanges(
-					// @ts-ignore
-					component.getKind() === SyntaxKind.FunctionDeclaration
-						? component
-						: component?.getFirstAncestorByKind(SyntaxKind.VariableStatement)
-				);
-
-				commentRanges.map((range) => {
-					const comment: tsdoc.DocComment = parseTSDoc(range);
-
-					doc[sourceFilePath].description = renderCommentSummary(comment);
-
-					comment.params.blocks.forEach((paramBlock: tsdoc.DocParamBlock) => {
-
-						// Don't document params that aren't omitted from TS
-						if (doc[sourceFilePath].props[paramBlock.parameterName]) {
-							doc[sourceFilePath].props[paramBlock.parameterName] = {
-								...doc[sourceFilePath].props[paramBlock.parameterName],
-								description: renderParamBlock(paramBlock.content)
-							}
-						}
-					});
-				});
-			} else {
-				// Not a React component
-				return;
-			}
-		});
-
-		console.log(`Finished processing file ${sourceFileIndex + 1} of ${sourceFileCount}`);
+		if (fileDocs) {
+			docs[sourceFilePath] = fileDocs;
+		}
 	});
 
-	fs.writeFile(output, JSON.stringify(doc), 'utf8', () => {
-		console.log('Finished documentation generation!');
-	});
+	return docs;
 }
 
-const parser = (directory: string, output: string) => {
+/**
+ * Parses file(s) and generates JSON docs
+ *
+ * @param directory - File(s) to parse
+ * @param output - File to write results to (if CLI)
+ * @param isCLI - Sets if function should log to console
+ */
+const parser = (directory: string, output: string, isCLI: boolean = false) => {
 	const program = project.getProgram();
 
 	if (fs.lstatSync(directory).isDirectory()) {
@@ -272,8 +309,20 @@ const parser = (directory: string, output: string) => {
 		diagnostics.forEach((diagnostic) => {
 			console.error(`${diagnostic.getMessageText()} on line ${diagnostic.getLineNumber()} in ${diagnostic.getSourceFile().getFilePath()}`);
 		});
+		return;
+	}
+
+	if (isCLI) {
+		console.time('Finished in');
+	}
+
+	const docs = generateDocs(project.getSourceFiles(), output, isCLI);
+
+	if (isCLI) {
+		console.timeEnd('Finished in');
+		fs.writeFile(output, JSON.stringify(docs), 'utf8', ()=>{});
 	} else {
-		generateDocs(sourceFiles, output)
+		return docs;
 	}
 }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Button
+ * Basic button
  *
  * @param disabled - Sets if field is disabled
  * @param label - Sets the button text
@@ -20,4 +20,4 @@ const Button = ({
 	)
 };
 
-export default Button;
+export { Button }

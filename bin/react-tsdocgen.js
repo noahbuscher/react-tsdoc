@@ -9,9 +9,9 @@ require('yargs')
 		return yargs.positional('path', {
 			describe: 'file or files to parse',
 			type: 'string'
-		})
+		});
 	}, function (argv) {
-		parser(argv.path, argv.output)
+		parser(argv.path, argv.output, true);
 	})
 	.option('output', {
 		alias: 'o',
@@ -20,4 +20,4 @@ require('yargs')
 	})
 	.help()
 	.demandCommand(1)
-	.parse()
+	.parse();
