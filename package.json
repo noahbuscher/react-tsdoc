@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/noahbuscher/react-tsdoc"
   },
+  "license" : "MIT",
   "keywords": [
     "documentation-generation",
     "react",
@@ -29,8 +30,6 @@
     "build:ts": "tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@microsoft/tsdoc": "^0.13.2",
     "ts-morph": "^13.0.2",

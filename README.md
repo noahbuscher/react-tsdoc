@@ -5,11 +5,15 @@
 
 # react-tsdoc
 
-react-tsdoc (succinct name, I know) is an experimental tool to extract information
-from React Typescript component files with TSDoc for documentation generation purposes
-that strictly adheres to the TSDoc standard; in fact, it's based on the `@microsoft/tsdoc`
-parser. Ergo, it may not play super nice with JSDoc comments. If you get burned, don't
-say I didn't warn you.
+react-tsdoc is an WIP tool to extract information from React Typescript component
+files with [TSDoc](https://tsdoc.org) for documentation generation purposes that
+strictly adheres to the TSDoc standard; in fact, it's based on the `@microsoft/tsdoc`
+parser. Therefore, it may not play super nice with JSDoc comments. If you get
+burned, don't say I didn't warn you.
+
+> Similar to [react-docgen](https://github.com/reactjs/react-docgen), react-tsdocs
+is a low level tool to extract information about React components. I am currently
+working on a Babel plugin that works with this project to integrate with Storybook.
 
 ### Install
 
