@@ -67,16 +67,14 @@ export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration) =>
 	if (!propertiesNode) return [];
 
 	// @ts-ignore
-	typeNode.forEachChild((param: Node) => {
+	typeNode.forEachChild((param: PropertySignature) => {
 		if (param.getKind() !== SyntaxKind.PropertySignature) return;
 		const paramName = param.getFirstChildByKind(SyntaxKind.Identifier)?.getText() || '';
 		const initializer = getInitializer(propertiesNode, paramName);
 
 		params[paramName] = {
-			// @ts-ignore
 			required: !param.getQuestionTokenNode(),
 			initializer,
-			// @ts-ignore
 			type: getTypeSignature(param)
 		}
 	});

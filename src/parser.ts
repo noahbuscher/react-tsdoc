@@ -2,12 +2,11 @@ import path from 'path';
 import fs from 'fs';
 import {
 	Project,
-	SyntaxKind,
 	SourceFile,
 	ExportDeclaration
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
-import { isReactComponent } from './utils/reactComponentHelper';
+import { isReactComponent, getComponentFunction } from './utils/reactComponentHelper';
 import { getDeclarationParams } from './utils/paramsHelper';
 import {
 	getDeclarationDescription,
@@ -15,7 +14,6 @@ import {
 	renderParamBlock
 } from './utils/tsDocHelper';
 
-// Init new ts-morph project
 const project = new Project();
 
 /**
@@ -40,9 +38,7 @@ const generateDocsForFile = (sourceFile: SourceFile) => {
 				);
 			}
 
-			const component = node.getKind() === SyntaxKind.FunctionDeclaration
-				? node
-				: node.getFirstChildByKind(SyntaxKind.ArrowFunction);
+			const component = getComponentFunction(node);
 
 			// @ts-ignore
 			const params = getDeclarationParams(component);

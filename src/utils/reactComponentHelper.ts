@@ -27,8 +27,18 @@ export const isReactComponent = (node: ExportDeclaration) => {
  *
  * @param node - The node to search
  */
-export const getFunctionDecOrVariableStatement = (node: Node) =>
+export const getComponentInitializer = (node: Node) =>
 	node.getKind() === SyntaxKind.FunctionDeclaration
 		? node
 		// Comment ranges are not on the ArrowFunction
 		: node?.getFirstAncestorByKind(SyntaxKind.VariableStatement);
+
+/**
+ * Gets the function for a given component
+ *
+ * @param node - Node to evaluate
+ */
+export const getComponentFunction = (node: Node) =>
+	node.getKind() === SyntaxKind.FunctionDeclaration
+		? node
+		: node.getFirstChildByKind(SyntaxKind.ArrowFunction)

@@ -3,7 +3,7 @@
 const parser = require('../lib/parser').default;
 
 require('yargs')
-	.scriptName('react-tsdocgen')
+	.scriptName('react-tsdoc')
 	.usage('$0 [args]')
 	.command('$0 <path> [output]', 'Run the docgen', (yargs) => {
 		return yargs.positional('path', {

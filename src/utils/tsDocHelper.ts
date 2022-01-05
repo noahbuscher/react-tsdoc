@@ -1,6 +1,6 @@
 import { Node } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
-import { getFunctionDecOrVariableStatement } from './reactComponentHelper';
+import { getComponentInitializer } from './reactComponentHelper';
 
 /**
  * Find comment ranges for the React AST node
@@ -12,7 +12,11 @@ const findCommentRanges = (node: Node) => {
 
 	if (commentRanges.length) {
 		const commentStrings = commentRanges.map((range) =>
-			tsdoc.TextRange.fromStringRange(node.getSourceFile().getFullText(), range.getPos(), range.getEnd())
+			tsdoc.TextRange.fromStringRange(
+				node.getSourceFile().getFullText(),
+				range.getPos(),
+				range.getEnd()
+			)
 		);
 
 		return commentStrings;
@@ -76,7 +80,7 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
 export const getDeclarationDescription = (node: Node) => {
 	// Add descriptions for documented params
 	// @ts-ignore
-	const commentRanges = findCommentRanges(getFunctionDecOrVariableStatement(node));
+	const commentRanges = findCommentRanges(getComponentInitializer(node));
 
 	return renderCommentSummary(parseTSDoc(commentRanges[0]));
 }
@@ -89,7 +93,7 @@ export const getDeclarationDescription = (node: Node) => {
 export const getParamComments = (node: Node) => {
 	// Add descriptions for documented params
 	// @ts-ignore
-	const commentRanges = findCommentRanges(getFunctionDecOrVariableStatement(node));
+	const commentRanges = findCommentRanges(getComponentInitializer(node));
 
 	return parseTSDoc(commentRanges[0]).params.blocks;
 }

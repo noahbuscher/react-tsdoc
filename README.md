@@ -3,9 +3,9 @@
 </div>
 
 
-# react-tsdocgen
+# react-tsdoc
 
-react-tsdocgen (succinct name, I know) is an experimental tool to extract information
+react-tsdoc (succinct name, I know) is an experimental tool to extract information
 from React Typescript component files with TSDoc for documentation generation purposes
 that strictly adheres to the TSDoc standard; in fact, it's based on the `@microsoft/tsdoc`
 parser. Ergo, it may not play super nice with JSDoc comments. If you get burned, don't
@@ -13,16 +13,16 @@ say I didn't warn you.
 
 ### Install
 
-To install `react-tsdocgen` just run:
+To install `react-tsdoc` just run:
 
 ```
-npm install react-tsdocgen
+npm install react-tsdoc
 ```
 
 Example parser command:
 
 ```
-react-tsdocgen ./src/components --output ./docs/output.json
+react-tsdoc ./src/components --output ./docs/output.json
 ```
 
 ### Another Docgen?
@@ -156,5 +156,5 @@ This will build the `./lib` folder and then you can execute the CLI from the `/b
 directory, like this:
 
 ```
-bin/react-tsdocgen.js ./src/components ./output.json && cat ./output.json
+bin/react-tsdoc.js ./src/components ./output.json && cat ./output.json
 ```
