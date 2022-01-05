@@ -3,7 +3,8 @@ import fs from 'fs';
 import {
 	Project,
 	SourceFile,
-	ExportDeclaration
+	ExportDeclaration,
+	ExportedDeclarations
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
 import { isReactComponent, getComponentFunction } from './utils/reactComponentHelper';
@@ -21,14 +22,13 @@ const project = new Project();
  *
  * @param sourceFile - The sourceFile node to document
  */
-const generateDocsForFile = (sourceFile: SourceFile) => {
+const generateDocsForFile = (sourceFile: SourceFile): {} => {
 	let doc: any;
 
 	const exportedDeclarations = sourceFile.getExportedDeclarations();
 
-	// @ts-ignore
-	exportedDeclarations.forEach((declarations: ExportDeclaration[]) => {
-		declarations.forEach((node: ExportDeclaration) => {
+	exportedDeclarations.forEach((declarations: ExportedDeclarations[]) => {
+		declarations.forEach((node: ExportedDeclarations) => {
 			if (!isReactComponent(node)) return;
 
 			// We only allow one exported component definition per file
@@ -40,7 +40,8 @@ const generateDocsForFile = (sourceFile: SourceFile) => {
 
 			const component = getComponentFunction(node);
 
-			// @ts-ignore
+			if (!component) return;
+
 			const params = getDeclarationParams(component);
 
 			doc = {
@@ -61,12 +62,12 @@ const generateDocsForFile = (sourceFile: SourceFile) => {
 				};
 			};
 
-			// @ts-ignore
 			doc.description = getDeclarationDescription(component);
 
-			// @ts-ignore
 			getPropBlocks(component).forEach((propBlock: tsdoc.DocBlock) => {
 				const parsedPropBlock = renderPropBlock(propBlock.content);
+
+				if (!parsedPropBlock) return;
 
 				// Don't document params that aren't omitted from TS
 				if (doc.props[parsedPropBlock.propName]) {
@@ -89,11 +90,11 @@ const generateDocsForFile = (sourceFile: SourceFile) => {
  * @param output - File to write results to (if CLI)
  * @param isCLI - Sets if function should log to console
  */
-const generateDocs = (sourceFiles: SourceFile[], output: string, isCLI: boolean = false) => {
+const generateDocs = (sourceFiles: SourceFile[], isCLI: boolean = false): {} => {
 	const sourceFileCount = project.getSourceFiles().length;
 	const docs = {};
 
-	project.getSourceFiles().forEach((sourceFile, sourceFileIndex) => {
+	sourceFiles.forEach((sourceFile, sourceFileIndex) => {
 		if (isCLI) {
 			console.log(`Processing file ${sourceFileIndex + 1} of ${sourceFileCount}`);
 		}
@@ -128,7 +129,6 @@ const parser = (directory: string, output: string, isCLI: boolean = false) => {
 
 	project.resolveSourceFileDependencies();
 
-	// @ts-ignore
 	let diagnostics = program.getSyntacticDiagnostics();
 
 	if (diagnostics.length) {
@@ -140,7 +140,7 @@ const parser = (directory: string, output: string, isCLI: boolean = false) => {
 
 	if (isCLI) console.time('Finished in');
 
-	const docs = generateDocs(project.getSourceFiles(), output, isCLI);
+	const docs = generateDocs(project.getSourceFiles(), isCLI);
 
 	if (isCLI) {
 		fs.writeFile(output, JSON.stringify(docs), 'utf8', ()=>{

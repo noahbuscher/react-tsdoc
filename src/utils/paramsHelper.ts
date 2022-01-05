@@ -11,12 +11,23 @@ import {
 
 import { getTypeSignature } from './tsTypesHelper';
 
+type TypeSignature = {
+	name: string,
+	value?: string
+}
+
+type Param = {
+	required: boolean
+	initializer?: string,
+	type: TypeSignature
+}
+
 /**
  * Resolves a type ref (or returns the literal)
  *
  * @param node - Type literal or ref to resolve
  */
-export const resolveType = (node: Node) : TypeLiteralNode|TypeReferenceNode|null => {
+export const resolveType = (node: Node): TypeLiteralNode|TypeReferenceNode|null => {
 	if (!node) return null;
 
 	// Grab type literal, if any
@@ -31,8 +42,7 @@ export const resolveType = (node: Node) : TypeLiteralNode|TypeReferenceNode|null
 		const typeRefIdentifier = typeRef.getFirstChildByKindOrThrow(SyntaxKind.Identifier);
 
 		// First index is the root definition node
-		// @ts-ignore
-		return typeRefIdentifier.getDefinitionNodes()[0] || null;
+		return <TypeLiteralNode | TypeReferenceNode>typeRefIdentifier.getDefinitionNodes()[0] || null;
 	}
 
 	return typeLiteral;
@@ -44,7 +54,7 @@ export const resolveType = (node: Node) : TypeLiteralNode|TypeReferenceNode|null
  * @param properties - The properties node
  * @param paramName - The name of the param
  */
-export const getInitializer = (properties: ObjectBindingPattern, paramName: string) => {
+export const getInitializer = (properties: ObjectBindingPattern, paramName: string): string => {
 	return properties?.forEachChild((child: any) => {
 		if (child.getKind() === SyntaxKind.BindingElement
 			&& paramName === child.getFirstChildByKind(SyntaxKind.Identifier)?.getText()
@@ -59,7 +69,7 @@ export const getInitializer = (properties: ObjectBindingPattern, paramName: stri
  *
  * @param node - The current AST node
  */
-export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration) => {
+export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration): {string: Param}|{} => {
 	const params = {};
 	const paramsNode = node.getParameters()[0];
 	const propertiesNode = paramsNode.getFirstChildByKind(SyntaxKind.ObjectBindingPattern);

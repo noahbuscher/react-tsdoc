@@ -7,7 +7,7 @@ import { getComponentInitializer } from './reactComponentHelper';
  *
  * @param node - The current AST node
  */
-const findCommentRanges = (node: Node) => {
+const findCommentRanges = (node: Node): tsdoc.TextRange[] => {
 	const commentRanges = node.getLeadingCommentRanges();
 
 	if (commentRanges.length) {
@@ -30,7 +30,7 @@ const findCommentRanges = (node: Node) => {
  *
  * @param comment - The object containing the comment range
  */
-const parseTSDoc = (comment: any) => {
+const parseTSDoc = (comment: any): tsdoc.DocComment => {
 	const tsDocConfiguration: tsdoc.TSDocConfiguration = new tsdoc.TSDocConfiguration();
 
 	const propBlockDefinition: tsdoc.TSDocTagDefinition = new tsdoc.TSDocTagDefinition({
@@ -60,8 +60,7 @@ const parseTSDoc = (comment: any) => {
  *
  * @param node - The current AST node
  */
-// @ts-ignore
-export const renderPropBlock = (node: any) => {
+export const renderPropBlock = (node: tsdoc.DocNode): {propName: string, content: string}|undefined => {
 	if (node instanceof tsdoc.DocPlainText) {
 		return {
 			propName: node.text.split(' - ')[0].trim(),
@@ -79,7 +78,7 @@ export const renderPropBlock = (node: any) => {
  *
  * @param comment - The comment to render
  */
-const renderCommentSummary = (comment: tsdoc.DocComment) => {
+const renderCommentSummary = (comment: tsdoc.DocComment): string => {
 	return comment.summarySection
 		.getChildNodes()[0] // Grabs the summary nodes
 		// @ts-ignore
@@ -91,9 +90,8 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
  *
  * @param node - The node to grab the declaration description from
  */
-export const getDeclarationDescription = (node: Node) => {
-	// @ts-ignore
-	const commentRanges = findCommentRanges(getComponentInitializer(node));
+export const getDeclarationDescription = (node: Node): string => {
+	const commentRanges = findCommentRanges(<Node>getComponentInitializer(node));
 
 	if (commentRanges.length) {
 		return renderCommentSummary(parseTSDoc(commentRanges[0]));
@@ -107,14 +105,13 @@ export const getDeclarationDescription = (node: Node) => {
  *
  * @node - The node to parse comments out of
  */
-export const getPropBlocks = (node: Node) => {
-	// @ts-ignore
-	const commentRanges = findCommentRanges(getComponentInitializer(node));
+export const getPropBlocks = (node: Node): readonly tsdoc.DocBlock[] => {
+	const commentRanges = findCommentRanges(<Node>getComponentInitializer(node));
 
 	if (commentRanges.length) {
 		const comments = parseTSDoc(commentRanges[0]);
 
-		return comments.customBlocks
+		return comments.customBlocks;
 	}
 
 	return [];

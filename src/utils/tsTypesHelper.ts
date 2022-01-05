@@ -13,7 +13,7 @@ const SimpleTypes = [
 /**
  * Gets type data for a param
  */
-export const getTypeSignature = (node: PropertySignature) => {
+export const getTypeSignature = (node: PropertySignature): {} => {
 	const typeText = node.getType().getText().toString();
 
 	// Literals
