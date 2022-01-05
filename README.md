@@ -11,7 +11,7 @@ strictly adheres to the TSDoc standard; in fact, it's based on the `@microsoft/t
 parser. Therefore, it may not play super nice with JSDoc comments. If you get
 burned, don't say I didn't warn you.
 
-> Similar to [react-docgen](https://github.com/reactjs/react-docgen), react-tsdocs
+> Similar to [react-docgen](https://github.com/reactjs/react-docgen), react-tsdoc
 is a low level tool to extract information about React components. I am currently
 working on a Babel plugin that works with this project to integrate with Storybook.
 
