@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "author": "Noah Buscher",
   "description": "CLI to extract information from React Typescript component files with TSDoc for documentation generation purposes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noahbuscher/react-tsdoc"
+  },
   "keywords": [
     "documentation-generation",
     "react",
@@ -18,7 +22,7 @@
   },
   "main": "lib/main.js",
   "bin": {
-    "react-tsdocgen": "./bin/react-tsdocgen.js"
+    "react-tsdoc": "./bin/react-tsdoc.js"
   },
   "scripts": {
     "build": "rimraf lib/ && npm run build:ts",
