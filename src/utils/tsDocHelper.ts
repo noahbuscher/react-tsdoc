@@ -1,5 +1,6 @@
-import { Node, SyntaxKind } from 'ts-morph';
+import { Node } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
+import { getFunctionDecOrVariableStatement } from './reactComponentHelper';
 
 /**
  * Find comment ranges for the React AST node
@@ -9,7 +10,7 @@ import * as tsdoc from '@microsoft/tsdoc';
 const findCommentRanges = (node: Node) => {
 	const commentRanges = node.getLeadingCommentRanges();
 
-	if (commentRanges?.length) {
+	if (commentRanges.length) {
 		const commentStrings = commentRanges.map((range) =>
 			tsdoc.TextRange.fromStringRange(node.getSourceFile().getFullText(), range.getPos(), range.getEnd())
 		);
@@ -30,11 +31,9 @@ const parseTSDoc = (comment: any) => {
 	const parserContext: tsdoc.ParserContext = tsdocParser.parseRange(comment);
 	const docComment: tsdoc.DocComment = parserContext.docComment;
 
-	if (parserContext.log.messages.length === 0) {
-		// console.log('No TSDoc errors or warnings.');
-	} else {
+	if (parserContext.log.messages.length > 0) {
 		for (const message of parserContext.log.messages) {
-			console.log('Errors parsing TSDoc: ', message);
+			throw Error(message.text);
 		}
 	}
 
@@ -50,8 +49,6 @@ const parseTSDoc = (comment: any) => {
 export const renderParamBlock = (node: any) => {
 	if (node instanceof tsdoc.DocPlainText) {
 		return node.text;
-	} else {
-
 	}
 
 	for (const childNode of node.getChildNodes()) {
@@ -78,13 +75,8 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
  */
 export const getDeclarationDescription = (node: Node) => {
 	// Add descriptions for documented params
-	const commentRanges = findCommentRanges(
-		// @ts-ignore
-		node.getKind() === SyntaxKind.FunctionDeclaration
-			? node
-			// Comment ranges are not on the ArrowFunction
-			: node?.getFirstAncestorByKind(SyntaxKind.VariableStatement)
-	);
+	// @ts-ignore
+	const commentRanges = findCommentRanges(getFunctionDecOrVariableStatement(node));
 
 	return renderCommentSummary(parseTSDoc(commentRanges[0]));
 }
@@ -96,13 +88,8 @@ export const getDeclarationDescription = (node: Node) => {
  */
 export const getParamComments = (node: Node) => {
 	// Add descriptions for documented params
-	const commentRanges = findCommentRanges(
-		// @ts-ignore
-		node.getKind() === SyntaxKind.FunctionDeclaration
-			? node
-			// Comment ranges are not on the ArrowFunction
-			: node?.getFirstAncestorByKind(SyntaxKind.VariableStatement)
-	);
+	// @ts-ignore
+	const commentRanges = findCommentRanges(getFunctionDecOrVariableStatement(node));
 
 	return parseTSDoc(commentRanges[0]).params.blocks;
 }

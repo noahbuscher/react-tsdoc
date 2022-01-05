@@ -7,8 +7,8 @@ import {
 	ExportDeclaration
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
-import { isReactComponent } from './utils/isReactComponent';
-import { getDeclarationParams } from './utils/getDeclarationParams';
+import { isReactComponent } from './utils/reactComponentHelper';
+import { getDeclarationParams } from './utils/paramsHelper';
 import {
 	getDeclarationDescription,
 	getParamComments,
@@ -136,20 +136,19 @@ const parser = (directory: string, output: string, isCLI: boolean = false) => {
 
 	if (diagnostics.length) {
 		diagnostics.forEach((diagnostic) => {
-			console.error(`${diagnostic.getMessageText()} on line ${diagnostic.getLineNumber()} in ${diagnostic.getSourceFile().getFilePath()}`);
+			throw Error(`${diagnostic.getMessageText()} on line ${diagnostic.getLineNumber()} in ${diagnostic.getSourceFile().getFilePath()}`);
 		});
 		return;
 	}
 
-	if (isCLI) {
-		console.time('Finished in');
-	}
+	if (isCLI) console.time('Finished in');
 
 	const docs = generateDocs(project.getSourceFiles(), output, isCLI);
 
 	if (isCLI) {
-		console.timeEnd('Finished in');
-		fs.writeFile(output, JSON.stringify(docs), 'utf8', ()=>{});
+		fs.writeFile(output, JSON.stringify(docs), 'utf8', ()=>{
+			console.timeEnd('Finished in');
+		});
 	} else {
 		return docs;
 	}

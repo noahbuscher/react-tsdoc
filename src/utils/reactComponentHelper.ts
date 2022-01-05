@@ -1,6 +1,7 @@
 import {
 	SyntaxKind,
 	ExportDeclaration,
+	Node
 } from 'ts-morph';
 
 /**
@@ -20,3 +21,14 @@ export const isReactComponent = (node: ExportDeclaration) => {
 
 	return false;
 }
+
+/**
+ * Evaluates a node and returns the function declaration or variable statement
+ *
+ * @param node - The node to search
+ */
+export const getFunctionDecOrVariableStatement = (node: Node) =>
+	node.getKind() === SyntaxKind.FunctionDeclaration
+		? node
+		// Comment ranges are not on the ArrowFunction
+		: node?.getFirstAncestorByKind(SyntaxKind.VariableStatement);
