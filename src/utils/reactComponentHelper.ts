@@ -41,4 +41,4 @@ export const getComponentInitializer = (node: Node) =>
 export const getComponentFunction = (node: Node) =>
 	node.getKind() === SyntaxKind.FunctionDeclaration
 		? node
-		: node.getFirstChildByKind(SyntaxKind.ArrowFunction)
+		: node.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction)

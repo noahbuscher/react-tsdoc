@@ -31,7 +31,18 @@ const findCommentRanges = (node: Node) => {
  * @param comment - The object containing the comment range
  */
 const parseTSDoc = (comment: any) => {
-	const tsdocParser: tsdoc.TSDocParser = new tsdoc.TSDocParser();
+	const tsDocConfiguration: tsdoc.TSDocConfiguration = new tsdoc.TSDocConfiguration();
+
+	const propBlockDefinition: tsdoc.TSDocTagDefinition = new tsdoc.TSDocTagDefinition({
+		tagName: '@prop',
+		syntaxKind: tsdoc.TSDocTagSyntaxKind.BlockTag
+	});
+
+	tsDocConfiguration.addTagDefinitions([
+		propBlockDefinition
+	]);
+
+	const tsdocParser: tsdoc.TSDocParser = new tsdoc.TSDocParser(tsDocConfiguration);
 	const parserContext: tsdoc.ParserContext = tsdocParser.parseRange(comment);
 	const docComment: tsdoc.DocComment = parserContext.docComment;
 
@@ -50,13 +61,16 @@ const parseTSDoc = (comment: any) => {
  * @param node - The current AST node
  */
 // @ts-ignore
-export const renderParamBlock = (node: any) => {
+export const renderPropBlock = (node: any) => {
 	if (node instanceof tsdoc.DocPlainText) {
-		return node.text;
+		return {
+			propName: node.text.split(' - ')[0].trim(),
+			content: node.text.split(' - ')[1].trim()
+		}
 	}
 
 	for (const childNode of node.getChildNodes()) {
-		return renderParamBlock(childNode);
+		return renderPropBlock(childNode);
 	}
 }
 
@@ -78,7 +92,6 @@ const renderCommentSummary = (comment: tsdoc.DocComment) => {
  * @param node - The node to grab the declaration description from
  */
 export const getDeclarationDescription = (node: Node) => {
-	// Add descriptions for documented params
 	// @ts-ignore
 	const commentRanges = findCommentRanges(getComponentInitializer(node));
 
@@ -90,17 +103,18 @@ export const getDeclarationDescription = (node: Node) => {
 }
 
 /**
- * Gets comments for params
+ * Gets comments for props
  *
  * @node - The node to parse comments out of
  */
-export const getParamComments = (node: Node) => {
-	// Add descriptions for documented params
+export const getPropBlocks = (node: Node) => {
 	// @ts-ignore
 	const commentRanges = findCommentRanges(getComponentInitializer(node));
 
 	if (commentRanges.length) {
-		return parseTSDoc(commentRanges[0]).params.blocks;
+		const comments = parseTSDoc(commentRanges[0]);
+
+		return comments.customBlocks
 	}
 
 	return [];

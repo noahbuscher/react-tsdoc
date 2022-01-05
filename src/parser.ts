@@ -10,8 +10,8 @@ import { isReactComponent, getComponentFunction } from './utils/reactComponentHe
 import { getDeclarationParams } from './utils/paramsHelper';
 import {
 	getDeclarationDescription,
-	getParamComments,
-	renderParamBlock
+	getPropBlocks,
+	renderPropBlock
 } from './utils/tsDocHelper';
 
 const project = new Project();
@@ -65,13 +65,14 @@ const generateDocsForFile = (sourceFile: SourceFile) => {
 			doc.description = getDeclarationDescription(component);
 
 			// @ts-ignore
-			getParamComments(component).forEach((paramBlock: tsdoc.DocParamBlock) => {
+			getPropBlocks(component).forEach((propBlock: tsdoc.DocBlock) => {
+				const parsedPropBlock = renderPropBlock(propBlock.content);
 
 				// Don't document params that aren't omitted from TS
-				if (doc.props[paramBlock.parameterName]) {
-					doc.props[paramBlock.parameterName] = {
-						...doc.props[paramBlock.parameterName],
-						description: renderParamBlock(paramBlock.content)
+				if (doc.props[parsedPropBlock.propName]) {
+					doc.props[parsedPropBlock.propName] = {
+						...doc.props[parsedPropBlock.propName],
+						description: parsedPropBlock.content
 					}
 				}
 			});
