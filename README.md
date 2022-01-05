@@ -5,7 +5,7 @@
 
 # react-tsdocgen
 
-react-tsdocgen (succinct name, I know) is an experimental CLI to extract information
+react-tsdocgen (succinct name, I know) is an experimental tool to extract information
 from React Typescript component files with TSDoc for documentation generation purposes
 that strictly adheres to the TSDoc standard; in fact, it's based on the `@microsoft/tsdoc`
 parser. Ergo, it may not play super nice with JSDoc comments. If you get burned, don't

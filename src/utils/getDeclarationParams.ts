@@ -8,6 +8,8 @@ import {
 	TypeReferenceNode,
 } from 'ts-morph';
 
+import { getTypeSignature } from './tsTypesHelper';
+
 /**
  * Get all the TS params for a given node
  *
@@ -52,8 +54,8 @@ export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration) =>
 	}
 
 	// For each type param (source of truth)
-	nodeTypeParams.forEachChild((childNode: Node|PropertySignature) => {
-		const paramIdentifier = childNode.getFirstChildByKind(SyntaxKind.Identifier);
+	nodeTypeParams.forEachChild((typeNode: Node|PropertySignature) => {
+		const paramIdentifier = typeNode.getFirstChildByKind(SyntaxKind.Identifier);
 		if (!paramIdentifier) return;
 
 		const paramName: string = paramIdentifier.getText() || '';
@@ -70,8 +72,10 @@ export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration) =>
 		// Pass as much as we know about params to avoid successive searches
 		params[paramName] = {
 			// @ts-ignore
-			required: !childNode.getQuestionTokenNode(),
-			initializer
+			required: !typeNode.getQuestionTokenNode(),
+			initializer,
+			// @ts-ignore
+			type: getTypeSignature(typeNode)
 		}
 	});
 

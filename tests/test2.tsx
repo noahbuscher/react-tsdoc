@@ -11,7 +11,7 @@ const Button = ({
 	label
 }: {
 	disabled?: boolean
-	label: string
+	label: 'hello'
 }) => {
 	return (
 		<button disabled={disabled}>

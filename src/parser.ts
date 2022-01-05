@@ -14,7 +14,6 @@ import {
 	getParamComments,
 	renderParamBlock
 } from './utils/tsDocHelper';
-import { getType } from './utils/tsTypeHelper';
 
 // Init new ts-morph project
 const project = new Project();
@@ -54,7 +53,7 @@ const generateDocsForFile = (sourceFile: SourceFile) => {
 			};
 
 			for (const param in params) {
-				const { required, initializer } = params[param];
+				const { required, initializer, type } = params[param];
 
 				doc.props[param] = {
 					required,
@@ -62,9 +61,7 @@ const generateDocsForFile = (sourceFile: SourceFile) => {
 						value: initializer,
 						computed: false
 					},
-					tsType: {
-						name: 'unknown'
-					}
+					tsType: type
 				};
 			};
 
