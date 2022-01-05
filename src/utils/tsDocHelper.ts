@@ -82,7 +82,11 @@ export const getDeclarationDescription = (node: Node) => {
 	// @ts-ignore
 	const commentRanges = findCommentRanges(getComponentInitializer(node));
 
-	return renderCommentSummary(parseTSDoc(commentRanges[0]));
+	if (commentRanges.length) {
+		return renderCommentSummary(parseTSDoc(commentRanges[0]));
+	}
+
+	return '';
 }
 
 /**
@@ -95,5 +99,9 @@ export const getParamComments = (node: Node) => {
 	// @ts-ignore
 	const commentRanges = findCommentRanges(getComponentInitializer(node));
 
-	return parseTSDoc(commentRanges[0]).params.blocks;
+	if (commentRanges.length) {
+		return parseTSDoc(commentRanges[0]).params.blocks;
+	}
+
+	return [];
 }

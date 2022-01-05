@@ -16,14 +16,14 @@ import { getTypeSignature } from './tsTypesHelper';
  *
  * @param node - Type literal or ref to resolve
  */
-const resolveType = (node: Node|TypeLiteralNode|TypeReferenceNode|undefined) => {
-	if (!node) return [];
+export const resolveType = (node: Node) : TypeLiteralNode|TypeReferenceNode|null => {
+	if (!node) return null;
 
 	// Grab type literal, if any
 	const typeLiteral = node?.getLastChildByKind(SyntaxKind.TypeLiteral);
 
 	// Type literal found, but empty, return
-	if (typeLiteral && typeLiteral.getChildCount() === 0) return [];
+	if (typeLiteral && typeLiteral.getChildCount() === 0) return null;
 
 	// Must be a ref
 	if (!typeLiteral) {
@@ -31,7 +31,8 @@ const resolveType = (node: Node|TypeLiteralNode|TypeReferenceNode|undefined) => 
 		const typeRefIdentifier = typeRef.getFirstChildByKindOrThrow(SyntaxKind.Identifier);
 
 		// First index is the root definition node
-		return typeRefIdentifier.getDefinitionNodes()[0];
+		// @ts-ignore
+		return typeRefIdentifier.getDefinitionNodes()[0] || null;
 	}
 
 	return typeLiteral;
@@ -43,7 +44,7 @@ const resolveType = (node: Node|TypeLiteralNode|TypeReferenceNode|undefined) => 
  * @param properties - The properties node
  * @param paramName - The name of the param
  */
-const getInitializer = (properties: ObjectBindingPattern, paramName: string) => {
+export const getInitializer = (properties: ObjectBindingPattern, paramName: string) => {
 	return properties?.forEachChild((child: any) => {
 		if (child.getKind() === SyntaxKind.BindingElement
 			&& paramName === child.getFirstChildByKind(SyntaxKind.Identifier)?.getText()
@@ -59,24 +60,22 @@ const getInitializer = (properties: ObjectBindingPattern, paramName: string) => 
  * @param node - The current AST node
  */
 export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration) => {
-	const params: [] = [];
+	const params = {};
 	const paramsNode = node.getParameters()[0];
 	const propertiesNode = paramsNode.getFirstChildByKind(SyntaxKind.ObjectBindingPattern);
 	const typeNode = resolveType(paramsNode);
 
-	if (!propertiesNode) return [];
+	if (!typeNode) return {};
 
-	// @ts-ignore
-	typeNode.forEachChild((param: PropertySignature) => {
-		if (param.getKind() !== SyntaxKind.PropertySignature) return;
+	typeNode.getChildrenOfKind(SyntaxKind.PropertySignature).forEach((param: PropertySignature) => {
 		const paramName = param.getFirstChildByKind(SyntaxKind.Identifier)?.getText() || '';
-		const initializer = getInitializer(propertiesNode, paramName);
+		const initializer = propertiesNode ? getInitializer(propertiesNode, paramName) : undefined;
 
 		params[paramName] = {
 			required: !param.getQuestionTokenNode(),
 			initializer,
 			type: getTypeSignature(param)
-		}
+		};
 	});
 
 	return params;

@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"esModuleInterop": true,
 		"moduleResolution": "node",
-		"target": "es5",
+		"target": "es2018",
 		"module": "commonjs",
 		"outDir": "./lib",
 		"strict": true,
@@ -10,11 +10,13 @@
 		"strictNullChecks": true,
 		"strictPropertyInitialization": false,
 		"suppressImplicitAnyIndexErrors": true,
+		"types": ["jest", "node"],
+		"typeRoots": ["node_modules/@types"]
 	},
+	"include": ["src/**/*"],
 	"exclude": [
-		"node_modules"
-	],
-	"files": [
-		"src/parser.ts"
+		"node_modules",
+		"**/*.spec.ts",
+		"**/*.test.ts"
 	]
 }
