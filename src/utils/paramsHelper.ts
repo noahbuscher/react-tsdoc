@@ -11,14 +11,14 @@ import {
 
 import { getTypeSignature } from './tsTypesHelper';
 
-type TypeSignature = {
-	name: string,
+interface TypeSignature {
+	name: string
 	value?: string
 }
 
-type Param = {
+interface Param {
 	required: boolean
-	initializer?: string,
+	initializer?: string
 	type: TypeSignature
 }
 

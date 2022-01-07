@@ -3,7 +3,6 @@ import fs from 'fs';
 import {
 	Project,
 	SourceFile,
-	ExportDeclaration,
 	ExportedDeclarations
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
@@ -22,7 +21,7 @@ const project = new Project();
  *
  * @param sourceFile - The sourceFile node to document
  */
-const generateDocsForFile = (sourceFile: SourceFile): {} => {
+export const generateDocsForFile = (sourceFile: SourceFile): Doc => {
 	let doc: any;
 
 	const exportedDeclarations = sourceFile.getExportedDeclarations();
@@ -53,11 +52,11 @@ const generateDocsForFile = (sourceFile: SourceFile): {} => {
 				const { required, initializer, type } = params[param];
 
 				doc.props[param] = {
-					required,
-					defaultValue: initializer && {
+					...(!!initializer) && {defaultValue: {
 						value: initializer,
 						computed: false
-					},
+					}},
+					required,
 					tsType: type
 				};
 			};
@@ -80,7 +79,7 @@ const generateDocsForFile = (sourceFile: SourceFile): {} => {
 		});
 	})
 
-	return doc || false;
+	return doc || undefined;
 }
 
 /**
@@ -90,7 +89,7 @@ const generateDocsForFile = (sourceFile: SourceFile): {} => {
  * @param output - File to write results to (if CLI)
  * @param isCLI - Sets if function should log to console
  */
-const generateDocs = (sourceFiles: SourceFile[], isCLI: boolean = false): {} => {
+const generateDocs = (sourceFiles: SourceFile[], isCLI: boolean = false): {[name: string]: Doc} => {
 	const sourceFileCount = project.getSourceFiles().length;
 	const docs = {};
 

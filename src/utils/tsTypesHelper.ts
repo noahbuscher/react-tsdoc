@@ -10,8 +10,8 @@ const SimpleTypes = [
 	'Object'
 ];
 
-interface TypeSignature {
-	name: string,
+export interface TypeSignature {
+	name: string
 	value?: string
 }
 
