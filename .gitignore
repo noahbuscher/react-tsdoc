@@ -1,3 +1,4 @@
 lib
 node_modules
+.nova
 output.json
