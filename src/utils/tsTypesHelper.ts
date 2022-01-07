@@ -6,14 +6,19 @@ const SimpleTypes = [
 	'boolean',
 	'any',
 	'void',
-	'object',
-	'class'
+	'String',
+	'Object'
 ];
+
+interface TypeSignature {
+	name: string,
+	value?: string
+}
 
 /**
  * Gets type data for a param
  */
-export const getTypeSignature = (node: PropertySignature): {} => {
+export const getTypeSignature = (node: PropertySignature): TypeSignature => {
 	const typeText = node.getType().getText().toString();
 
 	// Literals

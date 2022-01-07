@@ -4,12 +4,9 @@ import { resolveType, getInitializer, getDeclarationParams } from '../paramsHelp
 /**
  * resolveType
  */
-describe("resolveType function", () => {
+describe('resolveType function', () => {
 	let project: Project;
-
-	beforeEach(() => {
-		project = new Project({ useInMemoryFileSystem: true });
-	});
+	beforeEach(() => { project = new Project({ useInMemoryFileSystem: true }) });
 
 	test('resolves existing type literal', () => {
 		const testFile = `
@@ -20,8 +17,6 @@ describe("resolveType function", () => {
 		`;
 
 		const sourceFile = project.createSourceFile('test.ts', testFile);
-
-		// Get params
 		const typeLiteral = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction).getParameters()[0]
 
 		expect(resolveType(typeLiteral)!.getKind()).toEqual(SyntaxKind.TypeLiteral);
@@ -37,8 +32,6 @@ describe("resolveType function", () => {
 		`;
 
 		const sourceFile = project.createSourceFile('test.ts', testFile);
-
-		// Get params
 		const typeLiteral = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction).getParameters()[0]
 
 		expect(resolveType(typeLiteral)!.getKind()).toEqual(SyntaxKind.InterfaceDeclaration);
@@ -50,8 +43,6 @@ describe("resolveType function", () => {
 		`;
 
 		const sourceFile = project.createSourceFile('test.ts', testFile);
-
-		// Get params
 		const typeLiteral = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction).getParameters()[0]
 
 		expect(resolveType(typeLiteral)).toBeNull();
@@ -61,12 +52,9 @@ describe("resolveType function", () => {
 /**
  * getInitializer
  */
-describe("getInitializer function", () => {
+describe('getInitializer function', () => {
 	let project: Project;
-
-	beforeEach(() => {
-		project = new Project({ useInMemoryFileSystem: true });
-	});
+	beforeEach(() => { project = new Project({ useInMemoryFileSystem: true }) });
 
 	test('gets initializer', () => {
 		const testFile = `
@@ -76,9 +64,7 @@ describe("getInitializer function", () => {
 				foo: string
 			}) => {};
 		`;
-
 		const sourceFile = project.createSourceFile('test.ts', testFile);
-
 		const bindings = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ObjectBindingPattern);
 
 		expect(getInitializer(bindings, 'foo')).toEqual("'bar'");
@@ -92,9 +78,7 @@ describe("getInitializer function", () => {
 				foo: string
 			}) => {};
 		`;
-
 		const sourceFile = project.createSourceFile('test.ts', testFile);
-
 		const bindings = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ObjectBindingPattern);
 
 		expect(getInitializer(bindings, 'foo')).toBeUndefined();
@@ -104,12 +88,9 @@ describe("getInitializer function", () => {
 /**
  * getDeclarationParams
  */
-describe("getDeclarationParams function", () => {
+describe('getDeclarationParams function', () => {
 	let project: Project;
-
-	beforeEach(() => {
-		project = new Project({ useInMemoryFileSystem: true });
-	});
+	beforeEach(() => { project = new Project({ useInMemoryFileSystem: true }) });
 
 	test('get all the params for a given node', () => {
 		const testFile = `
@@ -121,9 +102,8 @@ describe("getDeclarationParams function", () => {
 		`;
 
 		const sourceFile = project.createSourceFile('test.ts', testFile);
-
 		const arrFunc = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction);
 
-		expect(getDeclarationParams(arrFunc)).toEqual({"foo": {"required": true, "type": {"name": "string"}}});
+		expect(getDeclarationParams(arrFunc)).toEqual({foo: {required: true, type: {name: 'string'}}});
 	});
 });

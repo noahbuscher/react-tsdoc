@@ -7,7 +7,7 @@ import { getComponentInitializer } from './reactComponentHelper';
  *
  * @param node - The current AST node
  */
-const findCommentRanges = (node: Node): tsdoc.TextRange[] => {
+export const findCommentRanges = (node: Node): tsdoc.TextRange[] => {
 	const commentRanges = node.getLeadingCommentRanges();
 
 	if (commentRanges.length) {
@@ -30,7 +30,7 @@ const findCommentRanges = (node: Node): tsdoc.TextRange[] => {
  *
  * @param comment - The object containing the comment range
  */
-const parseTSDoc = (comment: any): tsdoc.DocComment => {
+export const parseTSDoc = (comment: tsdoc.TextRange): tsdoc.DocComment => {
 	const tsDocConfiguration: tsdoc.TSDocConfiguration = new tsdoc.TSDocConfiguration();
 
 	const propBlockDefinition: tsdoc.TSDocTagDefinition = new tsdoc.TSDocTagDefinition({
@@ -71,6 +71,8 @@ export const renderPropBlock = (node: tsdoc.DocNode): {propName: string, content
 	for (const childNode of node.getChildNodes()) {
 		return renderPropBlock(childNode);
 	}
+
+	return undefined;
 }
 
 /**
@@ -78,7 +80,7 @@ export const renderPropBlock = (node: tsdoc.DocNode): {propName: string, content
  *
  * @param comment - The comment to render
  */
-const renderCommentSummary = (comment: tsdoc.DocComment): string => {
+export const renderCommentSummary = (comment: tsdoc.DocComment): string => {
 	return comment.summarySection
 		.getChildNodes()[0] // Grabs the summary nodes
 		// @ts-ignore
