@@ -64,26 +64,4 @@ describe('getTypeSignature function', () => {
 		expect(property).toBeDefined();
 		expect(property.name).toEqual('void');
 	});
-
-	test('correctly gets type data for an Object', () => {
-		const testFile = `const Foo = ({foo}:{foo:Object}) => {};`;
-		const sourceFile = project.createSourceFile('test.ts', testFile);
-		const component = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.PropertySignature);
-
-		const property = getTypeSignature(component);
-
-		expect(property).toBeDefined();
-		expect(property.name).toEqual('Object');
-	});
-
-	test('correctly gets type data for a String', () => {
-		const testFile = `const Foo = ({foo}:{foo:String}) => {};`;
-		const sourceFile = project.createSourceFile('test.ts', testFile);
-		const component = sourceFile.getFirstDescendantByKindOrThrow(SyntaxKind.PropertySignature);
-
-		const property = getTypeSignature(component);
-
-		expect(property).toBeDefined();
-		expect(property.name).toEqual('String');
-	});
 });

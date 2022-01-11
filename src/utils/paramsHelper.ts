@@ -14,6 +14,9 @@ import { getTypeSignature } from './tsTypesHelper';
 interface TypeSignature {
 	name: string
 	value?: string
+	type?: string
+	elements?: any
+	raw?: string
 }
 
 interface Param {
