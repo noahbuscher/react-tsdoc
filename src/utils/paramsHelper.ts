@@ -9,21 +9,7 @@ import {
 	ObjectBindingPattern
 } from 'ts-morph';
 
-import { getTypeSignature } from './tsTypesHelper';
-
-interface TypeSignature {
-	name: string
-	value?: string
-	type?: string
-	elements?: any
-	raw?: string
-}
-
-interface Param {
-	required: boolean
-	initializer?: string
-	type: TypeSignature
-}
+import { getTypeSignature } from './typesHelper';
 
 /**
  * Resolves a type ref (or returns the literal)
@@ -72,7 +58,7 @@ export const getInitializer = (properties: ObjectBindingPattern, paramName: stri
  *
  * @param node - The current AST node
  */
-export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration): {string: Param}|{} => {
+export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration): {string: reactTSDoc.Param}|{} => {
 	const params = {};
 	const paramsNode = node.getParameters()[0];
 	const propertiesNode = paramsNode.getFirstChildByKind(SyntaxKind.ObjectBindingPattern);

@@ -21,7 +21,7 @@ const project = new Project();
  *
  * @param sourceFile - The sourceFile node to document
  */
-export const generateDocsForFile = (sourceFile: SourceFile): Doc => {
+export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc => {
 	let doc: any;
 
 	const exportedDeclarations = sourceFile.getExportedDeclarations();
@@ -89,7 +89,7 @@ export const generateDocsForFile = (sourceFile: SourceFile): Doc => {
  * @param output - File to write results to (if CLI)
  * @param isCLI - Sets if function should log to console
  */
-const generateDocs = (sourceFiles: SourceFile[], isCLI: boolean = false): {[name: string]: Doc} => {
+const generateDocs = (sourceFiles: SourceFile[], isCLI: boolean = false): {[name: string]: reactTSDoc.Doc} => {
 	const sourceFileCount = project.getSourceFiles().length;
 	const docs = {};
 

@@ -1,4 +1,4 @@
-<div style="text-align: center;">
+<div align="center">
   <img src="./logo.png" width="200px"/>
 </div>
 
@@ -65,6 +65,27 @@ Example parser command:
 ```
 react-tsdoc ./src/components --output ./docs/output.json
 ```
+
+### Why `@prop`?
+
+I've seen a lot of codebases that define interfaces at the JSDoc "block" level, instead
+of "inline" comments above each interface key. On a personal stylistic note, I prefer
+the former, and additionally, as TSDoc does _not_ allow interface definitions at the
+top-level, I didn't have much of a choice but to write my own parser.
+
+Basically `@prop Foo - Bar` at the top of a React component would be the same as writing:
+
+```tsx
+/**
+ * Bar
+ */
+```
+
+At the interface level. It's not a large change and as TSDocs allows extending the
+types via `tsdoc.json` file, it should still be pretty happy.
+
+Of course, you'll still want to use normal "inline" interface descriptions for your
+more (not React component) interfaces.
 
 ### Another Docgen?
 
@@ -139,12 +160,29 @@ const Button = ({
 }
 ```
 
+### Supported Types
+
+- [x] Simple (`foo: string`, `bar: boolean`)
+- [x] Literals (`foo: 'bar'`)
+- [x] Tuples (`foo: [string, number]`)
+- [x] Unions (`foo: string | boolean`)
+- [x] Typed arrays (`foo: string[]`)
+- [x] Object signatures (`{ foo: string}`)
+- [x] Index signatures (`[foo: string]: string`)
+- [x] Function signatures (`foo: (x: string) => void`)
+- [ ] Intersect (`foo: string & number`)
+- [ ] Nullable modifier (`foo: ?number`)
+- [ ] Typed classes (`foo: Class<bar>`)
+
+_Extended support coming soon._
+
 ### Development
 
 I've heavily commented a lot of the functions as this has been an AST learning
 experience for me, and I hope others find it easy to understand and contribute.
 
-To build, just run
+To build, just run:
+
 ```
 npm install && npm run build
 ```
@@ -154,4 +192,10 @@ directory, like this:
 
 ```
 bin/react-tsdoc.js ./src/components ./output.json && cat ./output.json
+```
+
+To run the tests:
+
+```
+npm run test
 ```
