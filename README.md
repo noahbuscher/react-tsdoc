@@ -1,5 +1,6 @@
 <div align="center">
-  <img src="./logo.png" width="200px"/>
+  <img src="./logo.png" width="200px"/><br/>
+  <i>:sparkles: Document React components with <code>@prop</code> :sparkles:</i>
 </div>
 
 
