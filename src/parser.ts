@@ -3,7 +3,10 @@ import fs from 'fs';
 import {
 	Project,
 	SourceFile,
-	ExportedDeclarations
+	ExportedDeclarations,
+	SyntaxKind,
+	Expression,
+	ExportAssignment
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
 import { isReactComponent, getComponentFunction } from './utils/reactComponentHelper';
@@ -21,61 +24,71 @@ const project = new Project();
  *
  * @param sourceFile - The sourceFile node to document
  */
-export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc => {
-	let doc: any;
+export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|undefined => {
+	try {
+		const defaultExportSymbol = sourceFile.getDefaultExportSymbolOrThrow();
 
-	const exportedDeclarations = sourceFile.getExportedDeclarations();
+		if (defaultExportSymbol) {
+			// @ts-ignore
+			const declaration: ExportAssignment = defaultExportSymbol.getDeclarations()[0];
+			if (declaration) {
+				const expr = declaration.getExpression();
+				// @ts-ignore
+				const node = expr.getDefinitionNodes()[0];
 
-	exportedDeclarations.forEach((declarations: ExportedDeclarations[]) => {
-		declarations.forEach((node: ExportedDeclarations) => {
-			if (!isReactComponent(node)) return;
+				if (!isReactComponent(node)) return;
 
-			// We only allow one exported component definition per file
-			if (doc) return;
+				const component = getComponentFunction(node);
 
-			const component = getComponentFunction(node);
+				if (!component) return;
 
-			if (!component) return;
+				const params = getDeclarationParams(component);
 
-			const params = getDeclarationParams(component);
-
-			doc = {
-				description: '',
-				props: {}
-			};
-
-			for (const param in params) {
-				const { required, initializer, type } = params[param];
-
-				doc.props[param] = {
-					...(!!initializer) && {defaultValue: {
-						value: initializer,
-						computed: false
-					}},
-					required,
-					tsType: type
+				const doc = {
+					description: '',
+					props: {}
 				};
-			};
 
-			doc.description = getDeclarationDescription(component);
+				for (const param in params) {
+					const { required, initializer, type } = params[param];
 
-			getPropBlocks(component).forEach((propBlock: tsdoc.DocBlock) => {
-				const parsedPropBlock = renderPropBlock(propBlock.content);
+					doc.props[param] = {
+						...(!!initializer) && {defaultValue: {
+							value: initializer,
+							computed: false
+						}},
+						required,
+						tsType: type
+					};
+				};
 
-				if (!parsedPropBlock) return;
+				doc.description = getDeclarationDescription(component);
 
-				// Don't document params that aren't omitted from TS
-				if (doc.props[parsedPropBlock.propName]) {
-					doc.props[parsedPropBlock.propName] = {
-						...doc.props[parsedPropBlock.propName],
-						description: parsedPropBlock.content
+				getPropBlocks(component).forEach((propBlock: tsdoc.DocBlock) => {
+					const parsedPropBlock = renderPropBlock(propBlock.content);
+
+					if (!parsedPropBlock) return;
+
+					// Don't document params that aren't omitted from TS
+					if (doc.props[parsedPropBlock.propName]) {
+						doc.props[parsedPropBlock.propName] = {
+							...doc.props[parsedPropBlock.propName],
+							description: parsedPropBlock.content
+						}
 					}
-				}
-			});
-		});
-	})
+				});
 
-	return doc || undefined;
+				return doc;
+			} else {
+				return undefined;
+			}
+		} else {
+			// No default export
+			return undefined;
+		}
+	} catch {
+		return undefined;
+	}
 }
 
 /**

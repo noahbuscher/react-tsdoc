@@ -29,7 +29,7 @@ describe('generateDocsForFile function', () => {
 
 		const docs = generateDocsForFile(sourceFile);
 
-		expect(docs.description).toEqual('Button');
-		expect(Object.keys(docs.props)).toHaveLength(2);
+		expect(docs!.description).toEqual('Button');
+		expect(Object.keys(docs!.props)).toHaveLength(2);
 	});
 });
