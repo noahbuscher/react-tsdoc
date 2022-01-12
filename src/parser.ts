@@ -3,10 +3,7 @@ import fs from 'fs';
 import {
 	Project,
 	SourceFile,
-	ExportedDeclarations,
-	SyntaxKind,
-	Expression,
-	ExportAssignment
+	ExportedDeclarations
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
 import { isReactComponent, getComponentFunction } from './utils/reactComponentHelper';
@@ -25,16 +22,18 @@ const project = new Project();
  * @param sourceFile - The sourceFile node to document
  */
 export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|undefined => {
-	try {
-		const defaultExportSymbol = sourceFile.getDefaultExportSymbolOrThrow();
+	const doc: any = {
+		props: {}
+	};
 
-		if (defaultExportSymbol) {
-			// @ts-ignore
-			const declaration: ExportAssignment = defaultExportSymbol.getDeclarations()[0];
-			if (declaration) {
-				const expr = declaration.getExpression();
+	try {
+		const exportedDeclarations = sourceFile.getExportedDeclarations();
+
+		exportedDeclarations.forEach((declarations: ExportedDeclarations[]) => {
+			declarations.forEach((node: ExportedDeclarations) => {
+				// Check if default export
 				// @ts-ignore
-				const node = expr.getDefinitionNodes()[0];
+				if (!node.isDefaultExport()) return;
 
 				if (!isReactComponent(node)) return;
 
@@ -44,10 +43,7 @@ export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|unde
 
 				const params = getDeclarationParams(component);
 
-				const doc = {
-					description: '',
-					props: {}
-				};
+				doc.props = {};
 
 				for (const param in params) {
 					const { required, initializer, type } = params[param];
@@ -77,15 +73,10 @@ export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|unde
 						}
 					}
 				});
+			});
+		});
 
-				return doc;
-			} else {
-				return undefined;
-			}
-		} else {
-			// No default export
-			return undefined;
-		}
+		return doc.description ? doc : undefined;
 	} catch {
 		return undefined;
 	}
