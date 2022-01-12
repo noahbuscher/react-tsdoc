@@ -1,4 +1,4 @@
-import { PropertySignature, IndexSignatureDeclaration, SyntaxKind } from 'ts-morph';
+import { PropertySignature, IndexSignatureDeclaration, SyntaxKind, UnionTypeNode } from 'ts-morph';
 
 /**
  * Gets type data for a param
@@ -32,7 +32,10 @@ export const getTypeSignature = (node: PropertySignature): reactTSDoc.TypeSignat
 			return { name: 'void' };
 		case(SyntaxKind.UnionType): { // foo | bar
 			const elements: any = [];
-			node.getFirstChildByKind(SyntaxKind.UnionType)?.getTypeNodes()
+			// @ts-ignore
+			const typeNode: UnionTypeNode = node.getTypeNode();
+
+			typeNode!.getTypeNodes()
 				.forEach((childNode: any) =>
 					elements.push(getTypeSignature(childNode))
 				);
@@ -45,10 +48,10 @@ export const getTypeSignature = (node: PropertySignature): reactTSDoc.TypeSignat
 		}
 		case(SyntaxKind.ArrayType): { // foo[]
 			const elements: any = [];
-			node.getFirstChildByKind(SyntaxKind.ArrayType)
-				?.forEachChild((childNode: any) =>
-					elements.push(getTypeSignature(childNode))
-				);
+			const typeNode = node.getTypeNodeOrThrow();
+			typeNode.forEachChild((childNode: any) =>
+				elements.push(getTypeSignature(childNode))
+			);
 
 			return {
 				name: 'Array',
@@ -58,10 +61,11 @@ export const getTypeSignature = (node: PropertySignature): reactTSDoc.TypeSignat
 		}
 		case(SyntaxKind.TupleType): { // [foo, bar, baz]
 			const elements: any = [];
-			node.getFirstChildByKindOrThrow(SyntaxKind.TupleType)
-				?.forEachChild((childNode: any) => {
-					elements.push(getTypeSignature(childNode))
-				});
+			const typeNode = node.getTypeNodeOrThrow();
+
+			typeNode.forEachChild((childNode: any) => {
+				elements.push(getTypeSignature(childNode))
+			});
 
 			return {
 				name: 'tuple',
@@ -71,7 +75,9 @@ export const getTypeSignature = (node: PropertySignature): reactTSDoc.TypeSignat
 		}
 		case(SyntaxKind.FunctionType): { // (foo: string) => void
 			const args: any = [];
-			node.getFirstChildByKindOrThrow(SyntaxKind.FunctionType).forEachChild((childNode: any) => {
+			const typeNode = node.getTypeNodeOrThrow();
+
+			typeNode.forEachChild((childNode: any) => {
 				if (childNode.getKind() === SyntaxKind.Parameter) {
 					args.push({
 						name: childNode.getFirstChildByKind(SyntaxKind.Identifier)?.getText(),
@@ -93,11 +99,10 @@ export const getTypeSignature = (node: PropertySignature): reactTSDoc.TypeSignat
 		}
 		case(SyntaxKind.TypeLiteral): // {foo: bar} OR {[foo: string]: bar}
 			const properties: reactTSDoc.TypeSignature[] = [];
-
-			const typeLiteral = node.getFirstChildByKindOrThrow(SyntaxKind.TypeLiteral);
+			const typeNode = node.getTypeNode();
 
 			// @ts-ignore
-			typeLiteral.forEachChild((childNode: PropertySignature|IndexSignatureDeclaration) => {
+			typeNode.forEachChild((childNode: PropertySignature|IndexSignatureDeclaration) => {
 				if (childNode.getKind() === SyntaxKind.PropertySignature) {
 					properties.push({
 						key: childNode.getFirstChildByKind(SyntaxKind.Identifier)?.getText(),
@@ -110,15 +115,15 @@ export const getTypeSignature = (node: PropertySignature): reactTSDoc.TypeSignat
 				}
 
 				if (childNode.getKind() === SyntaxKind.IndexSignature) {
-					const parameter = childNode.getFirstChildByKindOrThrow(SyntaxKind.Parameter);
+					const parameter = childNode.getFirstChildByKind(SyntaxKind.Parameter);
 
 					properties.push({
 						key: {
-							name: parameter.getType().getText()
+							name: parameter!.getType().getText()
 						},
 						value: {
 							...getTypeSignature(<PropertySignature>childNode.getLastChild()),
-							required: !parameter.hasQuestionToken()
+							required: !parameter!.hasQuestionToken()
 						}
 					});
 				}
