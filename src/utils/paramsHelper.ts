@@ -32,9 +32,7 @@ export const resolveType = (node: Node): TypeLiteralNode|TypeReferenceNode|null 
 
 			// First index is the root definition node
 			return <TypeLiteralNode | TypeReferenceNode>typeRefIdentifier.getDefinitionNodes()[0] || null;
-		} catch (error) {
-			console.log(error);
-
+		} catch {
 			return null;
 		}
 	}

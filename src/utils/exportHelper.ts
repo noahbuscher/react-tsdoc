@@ -10,8 +10,14 @@ export const getDefaultExport = (sourceFile: SourceFile) => {
 	let defaultExport = undefined;
 
 	exportedDeclarations.forEach((exported: ExportedDeclarations[]) => {
-		// @ts-ignore
-		defaultExport = exported.find((node) => node.isDefaultExport());
+		defaultExport = exported.find((node) => {
+			try {
+				// @ts-ignore
+				return node.isDefaultExport();
+			} catch {
+				return false;
+			}
+		});
 	});
 
 	return defaultExport;
