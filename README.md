@@ -16,7 +16,7 @@ document a component like the following:
 
 ```tsx
 /**
- * Awesome button
+ * Slick button
  *
  * @prop label - Sets the button text
  */
@@ -37,7 +37,7 @@ interface ButtonProps {
 };
 
 /**
- * Awesome button
+ * Slick button
  *
  * @prop label - Sets the button text
  */
@@ -86,6 +86,23 @@ types via `tsdoc.json` file, it should still be pretty happy.
 
 Of course, you'll still want to use normal "inline" interface descriptions for your
 more (not React component) interfaces.
+
+### Adding to `tsdoc.json`
+
+Adding support for the `@prop` tag to your TSDoc config is easy! Create a `tsdoc.json`
+if you don't already have one and add this to it:
+
+```json
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+  "tagDefinitions": [
+    {
+      "tagName": "@prop",
+      "syntaxKind": "block"
+    }
+  ]
+}
+```
 
 ### Another Docgen?
 
