@@ -71,13 +71,14 @@ export const getTypeSignature = (node: PropertySignature): reactTSDoc.TypeSignat
 		}
 		case(SyntaxKind.FunctionType): { // (foo: string) => void
 			const args: any = [];
-			node.getFirstChildByKindOrThrow(SyntaxKind.FunctionType)
-				?.getParameters().forEach((childNode: any) => {
+			node.getFirstChildByKindOrThrow(SyntaxKind.FunctionType).forEachChild((childNode: any) => {
+				if (childNode.getKind() === SyntaxKind.Parameter) {
 					args.push({
 						name: childNode.getFirstChildByKind(SyntaxKind.Identifier)?.getText(),
 						type: getTypeSignature(childNode.getTypeNode())
-					})
-				});
+					});
+				}
+			});
 
 			return {
 				name: 'signature',

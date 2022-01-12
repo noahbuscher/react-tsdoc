@@ -35,7 +35,11 @@ export const getComponentInitializer = (node: Node): FunctionDeclaration|Variabl
 		return <FunctionDeclaration>node;
 	}
 
-	return node?.getFirstAncestorByKindOrThrow(SyntaxKind.VariableStatement);
+	try {
+		return node?.getFirstAncestorByKindOrThrow(SyntaxKind.VariableStatement);
+	} catch {
+		return undefined;
+	}
 }
 
 /**
@@ -48,11 +52,9 @@ export const getComponentFunction = (node: Node|FunctionDeclaration): FunctionDe
 		return <FunctionDeclaration>node;
 	}
 
-	const arrowFunc = node.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction);
-
-	if (arrowFunc) {
-		return arrowFunc;
-	} else {
+	try {
+		return node.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction);
+	} catch {
 		return undefined;
 	}
 }
