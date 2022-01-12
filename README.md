@@ -11,7 +11,7 @@ elaborates on the TSDoc standard; in fact, it's based on the `@microsoft/tsdoc`
 parser.
 
 Instead of doing traditional [interface documentation](https://github.com/microsoft/tsdoc/issues/246#issuecomment-661581283),
-react-tsdoc opts in for a custom TSDoc tag named `@prop` which allows you to
+react-tsdoc opts in for a custom TSDoc tag named **`@prop`** which allows you to
 document a component like the following:
 
 ```tsx
@@ -29,35 +29,16 @@ const Button = ({
 );
 ```
 
-_or_
-
-```tsx
-interface ButtonProps {
-  label: string
-};
-
-/**
- * Slick button
- *
- * @prop label - Sets the button text
- */
-const Button = ({
-  label
-}: ButtonProps) => (
-  <button>{label}</button>
-);
-```
-
 > Similar to [react-docgen](https://github.com/reactjs/react-docgen), react-tsdoc
 is a low level tool to extract information about React components. I am currently
-working on a Babel plugin that works with this project to integrate with Storybook.
+working on a Webpack loader that works with this project to integrate with Storybook.
 
 ### Install
 
 To install `react-tsdoc` just run:
 
 ```
-npm install react-tsdoc
+npm i -g react-tsdoc
 ```
 
 Example parser command:
@@ -71,7 +52,7 @@ react-tsdoc ./src/components --output ./docs/output.json
 I've seen a lot of codebases that define interfaces at the JSDoc "block" level, instead
 of "inline" comments above each interface key. On a personal stylistic note, I prefer
 the former, and additionally, as TSDoc does _not_ allow interface definitions at the
-top-level, I didn't have much of a choice but to write my own parser.
+top-level, I didn't have much of a choice but to write my own tool.
 
 Basically `@prop Foo - Bar` at the top of a React component would be the same as writing:
 
@@ -86,6 +67,62 @@ types via `tsdoc.json` file, it should still be pretty happy.
 
 Of course, you'll still want to use normal "inline" interface descriptions for your
 more (not React component) interfaces.
+
+### Output
+
+Here's an example component with the associated parser output...
+
+##### Input
+
+```tsx
+/**
+ * Button
+ *
+ * @prop disabled - Sets if field is disabled
+ * @prop label - Sets the button text
+ */
+const Button = ({
+	disabled = false,
+	label
+}: {
+	disabled?: boolean
+	label: string
+}) => {
+	return (
+		<button disabled={disabled}>
+			{label}
+		</button>
+	)
+};
+```
+
+##### Output
+
+```json
+{
+  "description": "Button",
+  "props": {
+    "disabled": {
+      "description": "Sets if field is disabled",
+      "required": false,
+      "tsType": {
+        "name": "boolean"
+      },
+      "defaultValue": {
+        "value": "false",
+        "computed": false
+      }
+    },
+    "label": {
+      "description": "Sets the button text",
+      "required": true,
+      "tsType": {
+        "name": "string"
+      }
+    }
+  }
+}
+```
 
 ### Adding to `tsdoc.json`
 
@@ -120,62 +157,6 @@ to see what each respective prop is used for at a glance is extremely handy.
 
 Ultimately, this is just an excuse for me to play around with ASTs, but I hope
 others find some use in this project.
-
-### Output
-
-Here's an example component with the associated parser output...
-
-#### Input
-
-```tsx
-/**
- * Button
- *
- * @prop disabled - Sets if field is disabled
- * @prop label - Sets the button text
- */
-const Button = ({
-	disabled = false,
-	label
-}: {
-	disabled?: boolean
-	label: string
-}) => {
-	return (
-		<button disabled={disabled}>
-			{label}
-		</button>
-	)
-};
-```
-
-#### Output
-
-```json
-{
-  "description": "Button",
-  "props": {
-    "disabled": {
-      "description": "Sets if field is disabled",
-      "required": false,
-      "tsType": {
-        "name": "boolean"
-      },
-      "defaultValue": {
-        "value": "false",
-        "computed": false
-      }
-    },
-    "label": {
-      "description": "Sets the button text",
-      "required": true,
-      "tsType": {
-        "name": "string"
-      }
-    }
-  }
-}
-```
 
 ### Supported Types
 
