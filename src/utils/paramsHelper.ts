@@ -8,7 +8,6 @@ import {
 	TypeReferenceNode,
 	ObjectBindingPattern
 } from 'ts-morph';
-
 import { getTypeSignature } from './typesHelper';
 
 /**
@@ -33,7 +32,9 @@ export const resolveType = (node: Node): TypeLiteralNode|TypeReferenceNode|null 
 
 			// First index is the root definition node
 			return <TypeLiteralNode | TypeReferenceNode>typeRefIdentifier.getDefinitionNodes()[0] || null;
-		} catch {
+		} catch (error) {
+			console.log(error);
+
 			return null;
 		}
 	}
@@ -84,7 +85,9 @@ export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration): {
 		});
 
 		return params;
-	} catch {
+	} catch (error) {
+		console.log(error);
+
 		return undefined;
 	}
 }

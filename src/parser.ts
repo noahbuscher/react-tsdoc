@@ -13,6 +13,7 @@ import {
 	getPropBlocks,
 	renderPropBlock
 } from './utils/tsDocHelper';
+import { getDefaultExport } from './utils/exportHelper';
 
 const project = new Project();
 
@@ -22,64 +23,51 @@ const project = new Project();
  * @param sourceFile - The sourceFile node to document
  */
 export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|undefined => {
-	const doc: any = {
-		props: {}
-	};
+	const defaultExport = getDefaultExport(sourceFile);
 
-	try {
-		const exportedDeclarations = sourceFile.getExportedDeclarations();
+	if (!defaultExport || !isReactComponent(defaultExport)) return;
 
-		exportedDeclarations.forEach((declarations: ExportedDeclarations[]) => {
-			declarations.forEach((node: ExportedDeclarations) => {
-				// Check if default export
-				// @ts-ignore
-				if (!node.isDefaultExport()) return;
+	const component = getComponentFunction(defaultExport);
 
-				if (!isReactComponent(node)) return;
+	if (component) {
+		const doc: any = {
+			props: {}
+		};
 
-				const component = getComponentFunction(node);
+		const params = getDeclarationParams(component);
 
-				if (!component) return;
+		for (const param in params) {
+			const { required, initializer, type } = params[param];
 
-				const params = getDeclarationParams(component);
+			doc.props[param] = {
+				...(!!initializer) && {defaultValue: {
+					value: initializer,
+					computed: false
+				}},
+				required,
+				tsType: type
+			};
+		};
 
-				doc.props = {};
+		doc.description = getDeclarationDescription(component);
 
-				for (const param in params) {
-					const { required, initializer, type } = params[param];
+		getPropBlocks(component).forEach((propBlock: tsdoc.DocBlock) => {
+			const parsedPropBlock = renderPropBlock(propBlock.content);
 
-					doc.props[param] = {
-						...(!!initializer) && {defaultValue: {
-							value: initializer,
-							computed: false
-						}},
-						required,
-						tsType: type
-					};
-				};
+			if (!parsedPropBlock) return;
 
-				doc.description = getDeclarationDescription(component);
-
-				getPropBlocks(component).forEach((propBlock: tsdoc.DocBlock) => {
-					const parsedPropBlock = renderPropBlock(propBlock.content);
-
-					if (!parsedPropBlock) return;
-
-					// Don't document params that aren't omitted from TS
-					if (doc.props[parsedPropBlock.propName]) {
-						doc.props[parsedPropBlock.propName] = {
-							...doc.props[parsedPropBlock.propName],
-							description: parsedPropBlock.content
-						}
-					}
-				});
-			});
+			if (doc.props[parsedPropBlock.propName]) {
+				doc.props[parsedPropBlock.propName] = {
+					description: parsedPropBlock.content,
+					...doc.props[parsedPropBlock.propName]
+				}
+			}
 		});
 
-		return doc.description ? doc : undefined;
-	} catch {
-		return undefined;
+		return doc;
 	}
+
+	return undefined;
 }
 
 /**
