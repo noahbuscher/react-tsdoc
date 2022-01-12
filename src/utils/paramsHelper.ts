@@ -28,7 +28,12 @@ export const resolveType = (node: Node): TypeLiteralNode|TypeReferenceNode|null 
 	// Must be a ref
 	if (!typeLiteral) {
 		const typeRef = node?.getFirstChildByKindOrThrow(SyntaxKind.TypeReference);
+
+		if (!typeRef) return null;
+
 		const typeRefIdentifier = typeRef.getFirstChildByKindOrThrow(SyntaxKind.Identifier);
+
+		if (!typeRefIdentifier) return null;
 
 		// First index is the root definition node
 		return <TypeLiteralNode | TypeReferenceNode>typeRefIdentifier.getDefinitionNodes()[0] || null;
@@ -58,13 +63,19 @@ export const getInitializer = (properties: ObjectBindingPattern, paramName: stri
  *
  * @param node - The current AST node
  */
-export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration): {string: reactTSDoc.Param}|{} => {
+export const getDeclarationParams = (node: ArrowFunction|FunctionDeclaration): {[param: string]: reactTSDoc.Param}|undefined => {
+	if (!node) return undefined;
+
 	const params = {};
 	const paramsNode = node.getParameters()[0];
+
+	// No params
+	if (!paramsNode) return undefined;
+
 	const propertiesNode = paramsNode.getFirstChildByKind(SyntaxKind.ObjectBindingPattern);
 	const typeNode = resolveType(paramsNode);
 
-	if (!typeNode) return {};
+	if (!typeNode) return undefined;
 
 	typeNode.getChildrenOfKind(SyntaxKind.PropertySignature).forEach((param: PropertySignature) => {
 		const paramName = param.getFirstChildByKind(SyntaxKind.Identifier)?.getText() || '';

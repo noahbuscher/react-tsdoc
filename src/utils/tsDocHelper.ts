@@ -30,7 +30,7 @@ export const findCommentRanges = (node: Node): tsdoc.TextRange[] => {
  *
  * @param comment - The object containing the comment range
  */
-export const parseTSDoc = (comment: tsdoc.TextRange): tsdoc.DocComment => {
+export const parseTSDoc = (comment: tsdoc.TextRange): tsdoc.DocComment|undefined => {
 	const tsDocConfiguration: tsdoc.TSDocConfiguration = new tsdoc.TSDocConfiguration();
 
 	const propBlockDefinition: tsdoc.TSDocTagDefinition = new tsdoc.TSDocTagDefinition({
@@ -46,11 +46,7 @@ export const parseTSDoc = (comment: tsdoc.TextRange): tsdoc.DocComment => {
 	const parserContext: tsdoc.ParserContext = tsdocParser.parseRange(comment);
 	const docComment: tsdoc.DocComment = parserContext.docComment;
 
-	if (parserContext.log.messages.length > 0) {
-		for (const message of parserContext.log.messages) {
-			throw Error(message.text);
-		}
-	}
+	if (parserContext.log.messages.length > 0) return undefined;
 
 	return docComment;
 }
@@ -96,7 +92,9 @@ export const getDeclarationDescription = (node: Node): string => {
 	const commentRanges = findCommentRanges(<Node>getComponentInitializer(node));
 
 	if (commentRanges.length) {
-		return renderCommentSummary(parseTSDoc(commentRanges[0]));
+		const parsed = parseTSDoc(commentRanges[0]);
+		if (!parsed) return '';
+		return renderCommentSummary(parsed);
 	}
 
 	return '';
@@ -112,7 +110,7 @@ export const getPropBlocks = (node: Node): readonly tsdoc.DocBlock[] => {
 
 	if (commentRanges.length) {
 		const comments = parseTSDoc(commentRanges[0]);
-
+		if (!comments) return [];
 		return comments.customBlocks;
 	}
 

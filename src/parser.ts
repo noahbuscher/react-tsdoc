@@ -31,11 +31,7 @@ export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc => {
 			if (!isReactComponent(node)) return;
 
 			// We only allow one exported component definition per file
-			if (doc) {
-				throw Error(
-					`Multiple exported component definitions found in ${sourceFile.getFilePath()}`
-				);
-			}
+			if (doc) return;
 
 			const component = getComponentFunction(node);
 

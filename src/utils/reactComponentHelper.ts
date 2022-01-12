@@ -48,5 +48,11 @@ export const getComponentFunction = (node: Node|FunctionDeclaration): FunctionDe
 		return <FunctionDeclaration>node;
 	}
 
-	return node.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction);
+	const arrowFunc = node.getFirstDescendantByKindOrThrow(SyntaxKind.ArrowFunction);
+
+	if (arrowFunc) {
+		return arrowFunc;
+	} else {
+		return undefined;
+	}
 }

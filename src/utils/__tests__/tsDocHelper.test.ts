@@ -65,7 +65,7 @@ describe('parseTSDoc function', () => {
 
 		const parseDocs = parseTSDoc(range[0]);
 
-		expect(parseDocs.customBlocks).toHaveLength(1);
+		expect(parseDocs!.customBlocks).toHaveLength(1);
 	});
 });
 
@@ -89,7 +89,7 @@ describe('renderPropBlock function', () => {
 		const range = findCommentRanges(component);
 		const parseDocs = parseTSDoc(range[0]);
 
-		const prop = renderPropBlock(parseDocs.customBlocks[0].content);
+		const prop = renderPropBlock(parseDocs!.customBlocks[0].content);
 
 		expect(prop!.propName).toEqual('bar');
 		expect(prop!.content).toEqual('baz');
@@ -116,9 +116,13 @@ describe('renderCommentSummary function', () => {
 		const range = findCommentRanges(component);
 		const parseDocs = parseTSDoc(range[0]);
 
-		const summary = renderCommentSummary(parseDocs);
+		expect(parseDocs).not.toBeUndefined();
 
-		expect(summary).toEqual('Some description');
+		if (parseDocs) {
+			const summary = renderCommentSummary(parseDocs);
+
+			expect(summary).toEqual('Some description');
+		}
 	});
 });
 
