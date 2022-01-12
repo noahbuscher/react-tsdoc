@@ -34,7 +34,6 @@ const Button = ({
 	 */
 	onClick: (...) => {}
 }) => ();
-);
 ```
 
 **You could do this 👇 and _still_ have Storybook pick up the prop descriptions?**
