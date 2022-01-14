@@ -2,8 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import {
 	Project,
-	SourceFile,
-	ExportedDeclarations
+	SourceFile
 } from 'ts-morph';
 import * as tsdoc from '@microsoft/tsdoc';
 import { isReactComponent, getComponentFunction } from './utils/reactComponentHelper';
@@ -79,7 +78,7 @@ export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|unde
  */
 const generateDocs = (sourceFiles: SourceFile[], isCLI: boolean = false): {[name: string]: reactTSDoc.Doc} => {
 	const sourceFileCount = project.getSourceFiles().length;
-	const docs = {};
+	let docs = {};
 
 	sourceFiles.forEach((sourceFile, sourceFileIndex) => {
 		if (isCLI) {
@@ -91,7 +90,11 @@ const generateDocs = (sourceFiles: SourceFile[], isCLI: boolean = false): {[name
 		const fileDocs = generateDocsForFile(sourceFile);
 
 		if (fileDocs) {
-			docs[sourceFilePath] = fileDocs;
+			if (sourceFiles.length > 1) {
+				docs[sourceFilePath] = fileDocs;
+			} else {
+				docs = fileDocs;
+			}
 		}
 	});
 
