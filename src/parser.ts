@@ -30,6 +30,10 @@ export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|unde
 
 	if (component) {
 		const doc: any = {
+			// @ts-ignore
+			displayName: defaultExport.getName(),
+			description: getDeclarationDescription(component),
+			methods: [],
 			props: {}
 		};
 
@@ -47,8 +51,6 @@ export const generateDocsForFile = (sourceFile: SourceFile): reactTSDoc.Doc|unde
 				tsType: type
 			};
 		};
-
-		doc.description = getDeclarationDescription(component);
 
 		getPropBlocks(component).forEach((propBlock: tsdoc.DocBlock) => {
 			const parsedPropBlock = renderPropBlock(propBlock.content);
