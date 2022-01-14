@@ -1,6 +1,6 @@
 {
   "name": "react-tsdoc",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "author": "Noah Buscher",
   "description": "CLI to extract information from React Typescript component files with TSDoc for documentation generation purposes",
   "repository": {
