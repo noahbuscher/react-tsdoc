@@ -10,6 +10,11 @@ react-tsdoc is an tool to extract information from React Typescript component
 files with [TSDoc](https://tsdoc.org) for documentation generation that
 elaborates on the TSDoc standard. Just use `@prop`!
 
+> Similar to [react-docgen](https://github.com/reactjs/react-docgen), react-tsdoc
+is a low level tool to extract information about React components. Use the
+[react-tsdoc-loader](https://github.com/noahbuscher/react-tsdoc-loader) to inject the docs
+into Storybook.
+
 **Wouldn't it be nice if instead of doing this...**
 
 ```tsx
@@ -61,10 +66,6 @@ const Button = ({
 **That's where react-tsdoc comes in! It automatically generates documentation from the
 TSDoc comment's `@prop`s while also still passing through all the other goodies you also
 want to see, such as if a prop is required, types, default values, and more!**
-
-> Similar to [react-docgen](https://github.com/reactjs/react-docgen), react-tsdoc
-is a low level tool to extract information about React components. I am currently
-working on a Webpack loader that works with this project to integrate with Storybook.
 
 ## Install
 
