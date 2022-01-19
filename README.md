@@ -10,10 +10,9 @@ react-tsdoc is an tool to extract information from React Typescript component
 files with [TSDoc](https://tsdoc.org) for documentation generation that
 elaborates on the TSDoc standard. Just use `@prop`!
 
-> Similar to [react-docgen](https://github.com/reactjs/react-docgen), react-tsdoc
-is a low level tool to extract information about React components. Use the
-[react-tsdoc-loader](https://github.com/noahbuscher/react-tsdoc-loader) to inject the docs
-into Storybook.
+> Similar to react-docgen, react-tsdoc is a low level tool to extract information
+about React components. Use [react-tsdoc-loader](https://github.com/noahbuscher/react-tsdoc-loader)
+to inject the docs into Storybook.
 
 **Wouldn't it be nice if instead of doing this...**
 
@@ -84,9 +83,10 @@ react-tsdoc ./src/components --output ./docs/output.json
 ## How do I use this with Storybook?
 
 This tool just create JSON blobs with the documentation information. To use this with Storybook
-you'll need to use a Webpack loader to inject this information into your story's components.
+you'll need to use the Webpack loader to inject this information into your story's components.
 
-I'm currently working on said loader and should have something up soon!
+Use [react-tsdoc-loader](https://github.com/noahbuscher/react-tsdoc-loader) to inject the docs
+into Storybook.
 
 ## Why `@prop`?
 
